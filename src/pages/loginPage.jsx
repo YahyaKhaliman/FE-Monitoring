@@ -153,7 +153,6 @@ export default function LoginPage() {
   );
 }
 
-// --- Styles Object (Terracotta Warm & High Contrast) ---
 const styles = {
   container: {
     display: "flex",
