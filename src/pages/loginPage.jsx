@@ -138,7 +138,7 @@ export default function LoginPage() {
 
           {/* Submit Button */}
           <button type="submit" disabled={loading} style={styles.submitBtn}>
-            {loading ? "Menautkan Sesi..." : "Masuk Sekarang"}
+            {loading ? "Loading..." : "Masuk Sekarang"}
           </button>
 
           {/* Error Message */}
