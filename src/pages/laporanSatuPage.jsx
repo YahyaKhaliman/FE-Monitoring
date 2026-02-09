@@ -310,7 +310,7 @@ export default function LaporanPage() {
       {/* CHARTS GRID */}
       <div style={styles.chartGrid}>
         <div style={styles.panel}>
-          <h3 style={styles.panelTitle}>{`Grafik Target vs Realisasi ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h3>
+          <h3 style={styles.panelTitle}>{`Grafik Target vs Realisasi Keseluruhan ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h3>
           <div style={{ width: "100%", height: 300, marginTop: 20 }}>
             <ResponsiveContainer>
               <BarChart data={perTanggal}>
