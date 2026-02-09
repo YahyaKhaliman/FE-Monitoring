@@ -867,8 +867,8 @@ const styles = {
     zIndex: 11,
   },
   thSubDate: {
-    textAlign: "center",
     padding: "3px",
+    textAlign: "center",
     background: "#F0F7FF",
     color: "#2563EB",
     fontWeight: 700,
