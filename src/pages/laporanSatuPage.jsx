@@ -480,22 +480,27 @@ export default function LaporanPage() {
         <div style={styles.tableWrapper}>
           <table style={styles.table}>
             <thead>
+  {/* Baris 1: Judul Utama */}
+  <tr>
+    <th rowSpan={2} style={styles.th}>Identitas SPK</th>
+    <th style={styles.thDaily}>Target</th>
+    <th style={styles.thDaily}>Realisasi</th>
+    <th rowSpan={2} style={styles.thHighlight}>Order</th>
+    <th rowSpan={2} style={styles.thHighlight}>
+      Total <br /> Realisasi
+    </th>
+    <th rowSpan={2} style={styles.thHighlight}>Progress</th>
+    <th rowSpan={2} style={styles.thHighlight}>Detail</th>
+    <th rowSpan={2} style={styles.thCenter}>Status</th>
+  </tr>
 
-              <tr>
-                <th style={styles.th}>Identitas SPK</th>
-                <th style={styles.thDaily}>Target</th>
-                <th style={styles.thDaily}>Realisasi</th>
-                <th style={styles.thHighlight}>Order</th>
-                <th style={styles.thHighlight}>
-                  Total
-                  <br />
-                  Realisasi
-                </th>
-                <th style={styles.thHighlight}>Progress</th>
-                <th style={styles.thHighlight}>Detail</th>
-                <th style={styles.thCenter}>Status</th>
-              </tr>
-            </thead>
+  {/* Baris 2: Gabungan Tanggal (Sticky dengan offset top) */}
+  <tr>
+    <th colSpan={2} style={styles.thSubDate}>
+      {formatDateIndo(tglAwal)} s/d {formatDateIndo(tglAkhir)}
+    </th>
+  </tr>
+</thead>
             <tbody>
               {filteredPerSpk.length === 0 ? (
                 <tr>
@@ -840,8 +845,8 @@ const styles = {
     fontWeight: 800,
     fontSize: "11px",
     textTransform: "uppercase",
-    borderBottom: "2px solid #E5E7EB",
-    border: "1px solid #E5E7EB",
+    borderBottom: "2px solid #4B5563",
+    borderTop: "2px solid #4B5563",
     letterSpacing: "0.05em",
     position: 'sticky',
     top: 0,
@@ -849,16 +854,29 @@ const styles = {
   },
   thDaily: {
     textAlign: "center",
-    padding: "16px",
+    padding: "6px 16px",
     background: "#F0F7FF",
     color: "#2563EB",
     fontWeight: 800,
     fontSize: "11px",
     textTransform: "uppercase",
-    borderBottom: "2px solid #3B82F6",
+    borderBottom: "1px solid #3B82F6",
+    borderTop: "2px solid #3B82F6",
     position: 'sticky',
     top: 0,
     zIndex: 11,
+  },
+  thSubDate: {
+    textAlign: "center",
+    padding: "3px",
+    background: "#F0F7FF",
+    color: "#2563EB",
+    fontWeight: 700,
+    fontSize: "10px",
+    borderBottom: "2px solid #3B82F6",
+    position: 'sticky',
+    top: '35px',
+    zIndex: 10,
   },
   thCenter: {
     textAlign: "center",
@@ -868,10 +886,11 @@ const styles = {
     fontWeight: 800,
     fontSize: "11px",
     textTransform: "uppercase",
-    borderBottom: "2px solid #E5E7EB",
+    borderBottom: "2px solid #4B5563",
+    borderTop: "2px solid #4B5563",
     position: 'sticky',
     top: 0,
-    zIndex: 10,
+    zIndex: 11,
   },
   thHighlight: {
     textAlign: "center",
@@ -882,9 +901,10 @@ const styles = {
     fontSize: "11px",
     textTransform: "uppercase",
     borderBottom: "2px solid #B34E33",
+    borderTop: "2px solid #B34E33",
     position: 'sticky',
     top: 0,
-    zIndex: 10,
+    zIndex: 11,
   },
   trEven: { background: "#FFFFFF" },
   trOdd: { background: "#F8FAFC" },
