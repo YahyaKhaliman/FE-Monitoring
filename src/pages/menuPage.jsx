@@ -1,106 +1,185 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/authProvider";
+import { toast } from "react-toastify";
 
 export default function MenuPage() {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
 
-    const isAdmin = (user?.user_bagian || "").toUpperCase() === "ADMIN";
+    const isAdmin = ["ADMIN", "IT"].includes((user?.user_bagian || "").toUpperCase());
 
     const userLabel = useMemo(() => {
         if (!user) return "";
-        const nama = user.user_nama || "";
-        const cab = user.user_cab || "";
-        const bagian = user.user_bagian || "";
-        const kelompok = user.user_kelompok || "";
-        return `${nama} : ${cab} ${bagian} ${kelompok}`.trim();
+        const { user_nama: nama, user_bagian: bagian } = user;
+        return `${nama} • ${bagian}`.trim();
     }, [user]);
+
+    function handleLogout() {
+        toast.dismiss();
+        toast.info(
+            <div style={{
+                fontFamily: "'Readex Pro', sans-serif",
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', width: '100%'
+            }}>
+                <p style={{ margin: '0 0 12px 0', fontWeight: 600, color: '#111827', fontSize: '14px' }}>
+                    Apakah Anda yakin ingin keluar?
+                </p>
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                    <button
+                        onClick={() => {
+                            if(logout) logout();
+                            navigate("/login", { replace: true });
+                            toast.dismiss();
+                        }}
+                        style={{
+                            background: '#B34E33', color: '#fff', border: 'none', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '12px', transition: 'opacity 0.2s'
+                        }}
+                        onMouseOver={e => e.currentTarget.style.opacity = '0.8'}
+                        onMouseOut={e => e.currentTarget.style.opacity = '1'}
+                    >
+                        Ya, Keluar
+                    </button>
+                    <button
+                        onClick={() => toast.dismiss()}
+                        style={{
+                            background: '#E5E7EB', color: '#374151', border: 'none', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '12px'
+                        }}
+                    >
+                        Batal
+                    </button>
+                </div>
+            </div>,
+            {
+                position: "top-center",
+                autoClose: false,
+                closeOnClick: false,
+                draggable: false,
+                icon: false,
+                closeButton: false,
+                style: { borderRadius: '12px', padding: '16px' }
+            }
+        );
+    }
 
     const menus = [
         ...(isAdmin
-        ? [
-            { key: "spk", title: "SPK Target", desc: "Input target produksi", path: "/spk-target" },
-            { key: "manpower", title: "Man Power", desc: "Input tenaga kerja", path: "/manpower" },
+            ? [
+                { key: "spk", title: "SPK Target", desc: "Input target produksi harian", path: "/spk-target", icon: "📋", state: { lini: "JAHIT" } },
+                { key: "manpower", title: "Man Power", desc: "Manajemen tenaga kerja", path: "/manpower", icon: "👥" },
             ]
-        : []),
-
-        { key: "realisasi", title: "Realisasi Job", desc: "Input realisasi produksi", path: "/realisasi" },
-        { key: "monitoring", title: "Monitoring Job", desc: "Tampilan monitoring", path: "/monitoring" },
-        { key: "change-password", title: "Ganti Password", desc: "Ubah password akun", path: "/change-password" },
+            : []),
+        { key: "realisasi", title: "Realisasi Job", desc: "Input hasil produksi lapangan", path: "/realisasi", icon: "⚙️" },
+        { key: "monitoring", title: "Monitoring Job", desc: "Pantau capaian produksi", path: "/monitoring", icon: "📊" },
+        { key: "change-password", title: "Ganti Password", desc: "Keamanan akun user", path: "/change-password", icon: "🔐" },
     ];
 
     return (
         <div style={styles.page}>
-        <div style={styles.header}>
-            <div>
-            <div style={styles.title}>MENU</div>
-            <div style={styles.sub}>{userLabel}</div>
+            <div style={styles.header}>
+                <div>
+                    <div style={styles.title}>Menu</div>
+                    <div style={styles.sub}>{userLabel}</div>
+                </div>
+                <button style={styles.btnSecondary} onClick={handleLogout}>
+                    Keluar
+                </button>
             </div>
 
-            <div style={styles.headerActions}>
-            <button style={styles.btnDanger} onClick={logout}>
-                Keluar
-            </button>
+            <div style={styles.grid}>
+                {menus.map((m) => (
+                    <button
+                        key={m.key}
+                        onClick={() => navigate(m.path, m.state ? { state: m.state } : undefined)}
+                        style={styles.card}
+                        type="button"
+                    >
+                        <div style={styles.iconBox}>{m.icon}</div>
+                        <div>
+                            <div style={styles.cardTitle}>{m.title}</div>
+                            <div style={styles.cardDesc}>{m.desc}</div>
+                        </div>
+                    </button>
+                ))}
             </div>
-        </div>
-
-        <div style={styles.grid}>
-            {menus.map((m) => (
-            <button
-                key={m.key}
-                onClick={() => navigate(m.path)}
-                style={styles.card}
-                type="button"
-            >
-                <div style={styles.cardTitle}>{m.title}</div>
-                <div style={styles.cardDesc}>{m.desc}</div>
-            </button>
-            ))}
-        </div>
         </div>
     );
 }
 
 const styles = {
-    page: { minHeight: "100vh", background: "#0f172a", padding: 16, color: "#e5e7eb" },
+    page: {
+        minHeight: "100vh",
+        background: "#F9FAFB", // Konsisten dengan LaporanPage
+        padding: "40px 20px",
+        fontFamily: "'Readex Pro', sans-serif",
+        maxWidth: "1200px",
+        margin: "0 auto"
+    },
     header: {
-        background: "#111827",
-        border: "1px solid #1f2937",
-        borderRadius: 12,
-        padding: 16,
+        background: "#ffffff",
+        border: "1px solid #E5E7EB",
+        borderRadius: 16,
+        padding: "24px",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
-        gap: 12,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
+        marginBottom: 32
     },
-    title: { fontSize: 18, fontWeight: 800, letterSpacing: 0.5 },
-    sub: { marginTop: 4, fontSize: 12, color: "#9ca3af" },
-    headerActions: { display: "flex", gap: 8 },
-    btnDanger: {
-        height: 36,
-        padding: "0 12px",
-        borderRadius: 10,
-        border: 0,
-        background: "#dc2626",
-        color: "white",
+    title: { fontSize: 24, fontWeight: 800, color: "#111827" },
+    sub: { marginTop: 4, fontSize: 13, color: "#6B7280", fontWeight: 500 },
+
+    btnSecondary: {
+        height: 42,
+        padding: "0 20px",
+        borderRadius: 8,
+        border: "1px solid #D1D5DB",
+        background: "#fff",
+        color: "#374151",
         fontWeight: 700,
         cursor: "pointer",
+        transition: "all 0.2s"
     },
+
     grid: {
-        marginTop: 16,
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-        gap: 12,
+        gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+        gap: 20,
     },
     card: {
         textAlign: "left",
-        background: "#111827",
-        border: "1px solid #1f2937",
-        borderRadius: 14,
-        padding: 16,
+        background: "#ffffff",
+        border: "1px solid #E5E7EB",
+        borderRadius: 16,
+        padding: 24,
         cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        gap: 20,
+        transition: "transform 0.2s, border-color 0.2s",
+        outline: "none"
     },
-    cardTitle: { fontSize: 16, fontWeight: 800 },
-    cardDesc: { marginTop: 6, fontSize: 12, color: "#9ca3af" },
+    iconBox: {
+        fontSize: 28,
+        background: "#FFF7ED",
+        width: 60,
+        height: 60,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 12,
+    },
+    cardTitle: {
+        fontSize: 16,
+        fontWeight: 800,
+        color: "#111827",
+        fontFamily: "'Inter', sans-serif"
+    },
+    cardDesc: { marginTop: 4, fontSize: 12, color: "#6B7280", fontWeight: 500 },
+
+    // Toast Confirmation Styles
+    toastContainer: { textAlign: 'center' },
+    toastText: { fontWeight: 600, color: '#111827', marginBottom: 12 },
+    btnToastYa: { background: '#B34E33', color: '#fff', border: 'none', padding: '6px 15px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 },
+    btnToastBatal: { background: '#E5E7EB', color: '#374151', border: 'none', padding: '6px 15px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 },
 };

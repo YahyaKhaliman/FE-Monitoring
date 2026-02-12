@@ -1,3 +1,8 @@
+// Cari SPK berdasarkan nomor
+export async function cariSpkTarget(nomor) {
+    const res = await api.get("/spk-cari", { params: { nomor } });
+    return res.data;
+}
 import api from "../config/api";
 
 export async function getLini() {

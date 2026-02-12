@@ -1,389 +1,283 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable no-unused-vars */
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getManPower, saveManPower, deleteManPower } from "../services/manPower.service";
 import { useAuth } from "../context/authProvider";
+import { toast } from "react-toastify";
+import { MdEdit, MdDelete } from "react-icons/md";
+
+function formatDateDDMMYYYY(dateStr) {
+    if (!dateStr) return "";
+    const dateOnly = String(dateStr).split("T")[0];
+    const [y, m, d] = dateOnly.split("-");
+    if (!y || !m || !d) return dateStr;
+    return `${d}/${m}/${y}`;
+}
 
 export default function ManPowerPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const isAdmin = (user?.user_bagian || "").toUpperCase() === "ADMIN";
+    const isAdmin = ["ADMIN", "IT"].includes((user?.user_bagian || "").toUpperCase());
     const canInput = isAdmin || (user?.user_bagian || "").toUpperCase() === "JAHIT";
-
     const today = new Date().toISOString().slice(0, 10);
 
-    // filter/list state
+    // --- States ---
     const [tanggal, setTanggal] = useState(today);
-    const [lini, setLini] = useState(isAdmin ? "JAHIT" : (user?.user_bagian || "JAHIT"));
-    const [kelompok, setKelompok] = useState(isAdmin ? "" : (user?.user_kelompok || ""));
+    const [lini] = useState("JAHIT"); // Default sesuai kebutuhan Anda
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [msg, setMsg] = useState(null);
 
-    // form input state
-    const [formTanggal, setFormTanggal] = useState(today);
-    const [formLini, setFormLini] = useState(isAdmin ? "JAHIT" : (user?.user_bagian || "JAHIT"));
-    const [formKelompok, setFormKelompok] = useState(isAdmin ? "" : (user?.user_kelompok || ""));
+    // Form States (Modal)
+    const [openForm, setOpenForm] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [formKelompok, setFormKelompok] = useState("");
     const [mp, setMp] = useState("");
+
+    const kelompokOptions = ["Line A", "Line B", "Line C", "Line D", "Line E", "Line F", "Line G", "Line H", "Line I", "Line J", "Line K"];
 
     const userLabel = useMemo(() => {
         if (!user) return "";
-        return `${user.user_nama || ""} : ${(user.user_cab || "")} ${(user.user_bagian || "")} ${(user.user_kelompok || "")}`.trim();
+        return `${user.user_nama || ""} • ${user.user_bagian || ""}`.trim();
     }, [user]);
 
-    async function loadList() {
-        setMsg(null);
-
-        const cab = user?.user_cab;
-        if (!cab) {
-        setMsg("User cab tidak ditemukan. Silakan login ulang.");
-        return;
+    // --- Data Loading ---
+    const refreshData = async () => {
+        setLoading(true);
+        try {
+            const res = await getManPower({ lini, tanggal, cab: user?.user_cab });
+            if (!res.ok) {
+                setRows([]);
+                throw new Error(res.message || "Gagal memuat data");
+            }
+            setRows(res.data || []);
+            return res;
+        } finally {
+            setLoading(false);
         }
+    };
 
-        const effectiveLini = isAdmin ? lini : user.user_bagian;
-        const effectiveKelompok = isAdmin ? (kelompok || undefined) : (user.user_kelompok || undefined);
+    useEffect(() => {
+        if (user?.user_cab) refreshData();
+    }, [tanggal]);
+
+    // --- Form Logic ---
+    const openAdd = () => {
+        setEditMode(false);
+        setFormKelompok("");
+        setMp("");
+        setOpenForm(true);
+    };
+
+    const openEdit = (r) => {
+        setEditMode(true);
+        setFormKelompok(r.kelompok);
+        setMp(r.mp);
+        setOpenForm(true);
+    };
+
+    const onSave = async (e) => {
+        e.preventDefault();
+        if (!formKelompok || !mp) return toast.warning("Lengkapi Kelompok dan Jumlah MP");
 
         setLoading(true);
         try {
-        const res = await getManPower({
-            cab,
-            lini: effectiveLini,
-            tanggal,
-            kelompok: effectiveKelompok,
-        });
+            const payload = {
+                tanggal,
+                cab: user?.user_cab,
+                lini,
+                kelompok: formKelompok,
+                mp: Number(mp || 0),
+                user: user?.user_kode,
+            };
 
-        if (!res.ok) {
-            setMsg(res.message || "Gagal load manpower");
-            setRows([]);
-            return;
-        }
-        setRows(res.data || []);
+            const res = await saveManPower(payload);
+            if (res.ok) {
+                toast.success(editMode ? "Data diperbarui" : "Data ditambahkan");
+                setOpenForm(false);
+                refreshData();
+            } else {
+                toast.error(res.message);
+            }
         } catch (e) {
-        setMsg("Server error saat load data");
-        setRows([]);
+            toast.error("Gagal menyimpan data");
         } finally {
-        setLoading(false);
+            setLoading(false);
         }
-    }
+    };
 
-    useEffect(() => {
-        if (!isAdmin && user?.user_bagian) setLini(user.user_bagian);
-        if (!isAdmin && user?.user_kelompok) setKelompok(user.user_kelompok);
-    }, [isAdmin, user]);
-
-    useEffect(() => {
-        loadList();
-    }, [tanggal, lini, kelompok]);
-
-    async function onSave(e) {
-        e.preventDefault();
-        setMsg(null);
-
-        if (!canInput) {
-        setMsg("Anda tidak punya akses input Man Power.");
-        return;
-        }
-
-        const cab = user?.user_cab;
-        if (!cab) {
-        setMsg("User cab tidak ditemukan. Silakan login ulang.");
-        return;
-        }
-
-        const payload = {
-        tanggal: formTanggal,
-        cab,
-        lini: isAdmin ? formLini : user.user_bagian,
-        kelompok: isAdmin ? formKelompok : user.user_kelompok,
-        mp: Number(mp || 0),
-        user: user?.user_kode,
-        };
-
-        if (!payload.lini || !payload.kelompok) {
-        setMsg("Lini dan Kelompok wajib diisi.");
-        return;
-        }
-        if (!payload.mp || payload.mp <= 0) {
-        setMsg("Man Power harus > 0");
-        return;
-        }
-
+    const onDelete = async (r) => {
+        if (!window.confirm(`Hapus Man Power kelompok ${r.kelompok}?`)) return;
         try {
-        const res = await saveManPower(payload);
-        if (!res.ok) {
-            setMsg(res.message || "Gagal simpan Man Power");
-            return;
-        }
-        setMp("");
-        // refresh list sesuai filter tanggal sekarang
-        await loadList();
-        setMsg("Berhasil disimpan.");
-        } catch (e2) {
-        setMsg("Server error saat menyimpan");
-        }
-    }
-
-    async function onDelete(row) {
-        if (!canInput) {
-        setMsg("Anda tidak punya akses hapus Man Power.");
-        return;
-        }
-
-        const cab = user?.user_cab;
-        if (!cab) {
-        setMsg("User cab tidak ditemukan. Silakan login ulang.");
-        return;
-        }
-
-        const params = {
-        cab,
-        lini: row.lini || (isAdmin ? lini : user.user_bagian),
-        tanggal: row.tanggal, // pastikan dari BE format YYYY-MM-DD
-        kelompok: row.kelompok,
-        };
-
-        if (!window.confirm(`Hapus Man Power ${params.kelompok} tanggal ${params.tanggal}?`)) return;
-
-        try {
-        const res = await deleteManPower(params);
-        if (!res.ok) {
-            setMsg(res.message || "Gagal hapus");
-            return;
-        }
-        await loadList();
-        } catch {
-        setMsg("Server error saat hapus");
-        }
-    }
+            const res = await deleteManPower({
+                cab: user?.user_cab,
+                lini: r.lini || lini,
+                tanggal: r.tanggal,
+                kelompok: r.kelompok,
+            });
+            if (res.ok) {
+                toast.success("Data dihapus");
+                refreshData();
+            }
+        } catch (e) { toast.error("Gagal menghapus"); }
+    };
 
     return (
         <div style={styles.page}>
-        <div style={styles.header}>
-            <div>
-            <div style={styles.title}>MAN POWER</div>
-            <div style={styles.sub}>{userLabel}</div>
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-            <button style={styles.btnGhost} onClick={() => navigate("/menu")}>Kembali</button>
-            </div>
-        </div>
-
-        {/* Filter */}
-        <div style={styles.panel}>
-            <div style={styles.panelTitle}>Filter</div>
-            <div style={styles.row}>
-            <div style={styles.field}>
-                <label style={styles.label}>Tanggal</label>
-                <input type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} />
-            </div>
-
-            <div style={styles.field}>
-                <label style={styles.label}>Lini</label>
-                <input
-                value={lini}
-                onChange={(e) => setLini(e.target.value)}
-                disabled={!isAdmin}
-                placeholder="contoh: JAHIT"
-                />
-            </div>
-
-            <div style={styles.field}>
-                <label style={styles.label}>Kelompok</label>
-                <input
-                value={kelompok}
-                onChange={(e) => setKelompok(e.target.value)}
-                disabled={!isAdmin}
-                placeholder={isAdmin ? "kosongkan untuk semua" : ""}
-                />
-            </div>
-
-            <div style={styles.field}>
-                <label style={styles.label}>&nbsp;</label>
-                <button style={styles.btnGhost} type="button" onClick={loadList}>
-                Refresh
-                </button>
-            </div>
-            </div>
-        </div>
-
-        {/* Input */}
-        {canInput && (
-            <form style={styles.panel} onSubmit={onSave}>
-            <div style={styles.panelTitle}>Input / Update Man Power</div>
-
-            <div style={styles.row}>
-                <div style={styles.field}>
-                <label style={styles.label}>Tanggal</label>
-                <input type="date" value={formTanggal} onChange={(e) => setFormTanggal(e.target.value)} />
+            {/* HEADER - Identik dengan SpkTargetPage */}
+            <div style={styles.header}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                    <button style={styles.btnGhost} onClick={() => navigate("/menu")}>← Back</button>
+                    <div>
+                        <div style={styles.title}>Man Power Management</div>
+                        <div style={styles.sub}>{userLabel}</div>
+                    </div>
                 </div>
-
-                <div style={styles.field}>
-                <label style={styles.label}>Lini</label>
-                <input
-                    value={formLini}
-                    onChange={(e) => setFormLini(e.target.value)}
-                    disabled={!isAdmin}
-                    placeholder="contoh: JAHIT"
-                />
-                </div>
-
-                <div style={styles.field}>
-                <label style={styles.label}>Kelompok</label>
-                <input
-                    value={formKelompok}
-                    onChange={(e) => setFormKelompok(e.target.value)}
-                    disabled={!isAdmin}
-                    placeholder="contoh: A1"
-                />
-                </div>
-
-                <div style={styles.field}>
-                <label style={styles.label}>MP</label>
-                <input
-                    value={mp}
-                    onChange={(e) => setMp(e.target.value)}
-                    type="number"
-                    min="0"
-                    placeholder="contoh: 12"
-                />
-                </div>
-
-                <div style={styles.field}>
-                <label style={styles.label}>&nbsp;</label>
-                <button style={styles.btnPrimary} type="submit">
-                    Simpan
-                </button>
-                </div>
-            </div>
-
-            {msg && <div style={{ marginTop: 10, color: msg.includes("Berhasil") ? "#22c55e" : "#ef4444" }}>{msg}</div>}
-            </form>
-        )}
-
-        {/* Table/List */}
-        <div style={styles.panel}>
-            <div style={styles.panelTitle}>List Man Power</div>
-
-            {loading ? (
-            <div style={{ padding: 12 }}>Loading...</div>
-            ) : (
-            <div style={{ overflowX: "auto" }}>
-                <table style={styles.table}>
-                <thead>
-                    <tr>
-                    <th style={styles.th}>Tanggal</th>
-                    <th style={styles.th}>Lini</th>
-                    <th style={styles.th}>Kelompok</th>
-                    <th style={styles.th}>MP</th>
-                    <th style={styles.th}>Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.length === 0 ? (
-                    <tr>
-                        <td style={styles.td} colSpan={5}>
-                        Tidak ada data
-                        </td>
-                    </tr>
-                    ) : (
-                    rows.map((r, idx) => (
-                        <tr key={idx}>
-                        <td style={styles.td}>{r.tanggal}</td>
-                        <td style={styles.td}>{r.lini || (isAdmin ? lini : user.user_bagian)}</td>
-                        <td style={styles.td}>{r.kelompok}</td>
-                        <td style={styles.td}>{r.mp}</td>
-                        <td style={styles.td}>
-                            <button
-                            style={styles.btnDanger}
-                            type="button"
-                            onClick={() => onDelete(r)}
-                            disabled={!canInput}
-                            >
-                            Hapus
-                            </button>
-                        </td>
-                        </tr>
-                    ))
+                <div style={{ display: "flex", gap: 8 }}>
+                    <button
+                        style={styles.btnSecondary}
+                        onClick={() => toast.promise(refreshData(), { pending: 'Memuat data...', success: 'Data dimuat', error: 'Gagal muat data' })}
+                        disabled={loading}
+                    >
+                        Refresh
+                    </button>
+                    {canInput && (
+                        <button style={styles.btnPrimary} onClick={openAdd}>
+                            + Tambah MP
+                        </button>
                     )}
-                </tbody>
+                </div>
+            </div>
+
+            {/* FILTERS */}
+            <div style={styles.filters}>
+                <div style={{ flex: 1 }}>
+                    <label style={styles.label}>Tanggal Produksi</label>
+                    <input
+                        type="date"
+                        style={styles.inputFilter}
+                        value={tanggal}
+                        onChange={(e) => setTanggal(e.target.value)}
+                    />
+                </div>
+                <div style={{ flex: 1 }}>
+                    <label style={styles.label}>Lini</label>
+                    <input style={styles.inputFilter} value={lini} disabled />
+                </div>
+            </div>
+
+            {/* TABLE */}
+            <div style={styles.tableWrap}>
+                <table style={styles.table}>
+                    <thead>
+                        <tr>
+                            <th style={styles.th}>Tanggal</th>
+                            <th style={styles.th}>Kelompok</th>
+                            <th style={styles.thCenter}>Jumlah</th>
+                            {canInput && <th style={styles.thCenter}>Aksi</th>}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.map((r, i) => (
+                            <tr key={i} style={i % 2 === 0 ? styles.trEven : styles.trOdd}>
+                                <td style={styles.td}>{r.tanggal}</td>
+                                <td style={styles.tdBold}>{r.kelompok}</td>
+                                <td style={styles.tdTarget}>{r.mp}</td>
+                                {canInput && (
+                                    <td style={styles.tdCenter}>
+                                        <button style={styles.btnEdit} onClick={() => openEdit(r)}><MdEdit /></button>
+                                        <button style={styles.btnDelete} onClick={() => onDelete(r)}><MdDelete /></button>
+                                    </td>
+                                )}
+                            </tr>
+                        ))}
+                    </tbody>
                 </table>
+                {rows.length === 0 && !loading && <div style={styles.empty}>Data tidak ditemukan</div>}
             </div>
-            )}
 
-            {!canInput && (
-            <div style={{ marginTop: 10, color: "#9ca3af", fontSize: 12 }}>
-                Anda hanya memiliki akses lihat (bukan input) Man Power.
-            </div>
+            {/* MODAL FORM */}
+            {openForm && (
+                <div style={styles.modalOverlay} onClick={() => setOpenForm(false)}>
+                    <div style={styles.modal} onClick={e => e.stopPropagation()}>
+                        <div style={styles.modalTitle}>{editMode ? "Edit Man Power" : "Tambah Man Power"}</div>
+                        <p style={styles.modalSub}>Lini: {lini} | Tanggal: {formatDateDDMMYYYY(tanggal)}</p>
+                        <form onSubmit={onSave}>
+                            <div style={styles.formGroup}>
+                                <label style={styles.labelForm}>Kelompok Produksi</label>
+                                <select
+                                    style={styles.input}
+                                    value={formKelompok}
+                                    onChange={e => setFormKelompok(e.target.value)}
+                                >
+                                    <option value="">Pilih Kelompok</option>
+                                    {kelompokOptions.map(opt => (
+                                        <option key={opt} value={opt}>{opt}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div style={styles.formGroup}>
+                                <label style={styles.labelForm}>Jumlah Tenaga Kerja (MP)</label>
+                                <input
+                                    style={styles.input}
+                                    value={mp}
+                                    onChange={e => setMp(e.target.value)}
+                                    type="number"
+                                    placeholder="0"
+                                />
+                            </div>
+                            <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
+                                <button type="button" style={styles.btnSecondaryModal} onClick={() => setOpenForm(false)}>Batal</button>
+                                <button type="submit" style={styles.btnPrimaryModal} disabled={loading}>
+                                    {loading ? "Proses..." : editMode ? "Update" : "Simpan"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             )}
-
-            {msg && !canInput && (
-            <div style={{ marginTop: 10, color: "#ef4444" }}>{msg}</div>
-            )}
-        </div>
         </div>
     );
 }
 
 const styles = {
-    page: { minHeight: "100vh", background: "#0f172a", padding: 16, color: "#e5e7eb" },
-    header: {
-        background: "#111827",
-        border: "1px solid #1f2937",
-        borderRadius: 12,
-        padding: 16,
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: 12,
-    },
-    title: { fontSize: 18, fontWeight: 800, letterSpacing: 0.5 },
-    sub: { marginTop: 4, fontSize: 12, color: "#9ca3af" },
+    page: { minHeight: "100vh", background: "#F9FAFB", padding: "20px", fontFamily: "'Readex Pro', sans-serif" },
+    header: { display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fff", padding: "15px 20px", borderRadius: "16px", border: "1px solid #E5E7EB", marginBottom: 20 },
+    title: { fontSize: "18px", fontWeight: 800, color: "#111827" },
+    sub: { fontSize: "12px", color: "#6B7280" },
 
-    panel: {
-        marginTop: 14,
-        background: "#111827",
-        border: "1px solid #1f2937",
-        borderRadius: 12,
-        padding: 14,
-    },
-    panelTitle: { fontWeight: 800, marginBottom: 10 },
-    row: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 },
-    field: { display: "grid", gap: 6 },
-    label: { fontSize: 12, color: "#9ca3af" },
+    filters: { display: "flex", gap: 16, background: "#fff", border: "1px solid #E5E7EB", borderRadius: "12px", padding: "15px 20px", marginBottom: 15 },
+    label: { fontSize: "13px", fontWeight: 800, color: "#374151", textTransform: "uppercase", marginBottom: 8, display: "block" },
+    inputFilter: { width: "98%", height: "40px", borderRadius: "8px", border: "1px solid #D1D5DB", padding: "0 10px", outline: "none", fontFamily: "Inherit", },
 
-    btnGhost: {
-        height: 36,
-        padding: "0 12px",
-        borderRadius: 10,
-        border: "1px solid #334155",
-        background: "transparent",
-        color: "#e5e7eb",
-        cursor: "pointer",
-    },
-    btnPrimary: {
-        height: 36,
-        padding: "0 12px",
-        borderRadius: 10,
-        border: 0,
-        background: "#2563eb",
-        color: "white",
-        fontWeight: 700,
-        cursor: "pointer",
-    },
-    btnDanger: {
-        height: 32,
-        padding: "0 10px",
-        borderRadius: 10,
-        border: 0,
-        background: "#dc2626",
-        color: "white",
-        fontWeight: 700,
-        cursor: "pointer",
-    },
-
+    tableWrap: { background: "#fff", border: "1px solid #E5E7EB", borderRadius: "16px", overflow: "hidden" },
     table: { width: "100%", borderCollapse: "collapse" },
-    th: { textAlign: "left", fontSize: 12, color: "#9ca3af", padding: "10px 8px", borderBottom: "1px solid #1f2937" },
-    td: { padding: "10px 8px", borderBottom: "1px solid #1f2937" },
+    th: { textAlign: "left", padding: "14px 20px", fontSize: "11px", fontWeight: 800, background: "#F9FAFB", borderBottom: "1px solid #E5E7EB", color: "#4B5563", textTransform: "uppercase" },
+    thCenter: { textAlign: "center", padding: "14px 20px", fontSize: "11px", fontWeight: 800, background: "#F9FAFB", borderBottom: "1px solid #E5E7EB", textTransform: "uppercase" },
+
+    td: { padding: "14px 20px", borderBottom: "1px solid #F3F4F6", fontSize: "14px" },
+    tdBold: { padding: "14px 20px", borderBottom: "1px solid #F3F4F6", fontSize: "14px", fontWeight: 700 },
+    tdTarget: { padding: "14px 20px", borderBottom: "1px solid #F3F4F6", fontSize: "16px", fontWeight: 800, color: "#B34E33", textAlign: "center", fontFamily: "'Inter', sans-serif" },
+    tdCenter: { padding: "14px 20px", borderBottom: "1px solid #F3F4F6", textAlign: "center" },
+    trEven: { background: "#fff" },
+    trOdd: { background: "#FBFBFA" },
+    empty: { padding: "40px", textAlign: "center", color: "#9CA3AF", fontStyle: "italic" },
+
+    btnPrimary: { background: "#B34E33", color: "#fff", border: 0, padding: "0 20px", height: "40px", borderRadius: "8px", fontWeight: 700, cursor: "pointer" },
+    btnSecondary: { background: "#fff", border: "1px solid #D1D5DB", height: "40px", padding: "0 15px", borderRadius: "8px", cursor: "pointer", fontWeight: 700 },
+    btnGhost: { background: "none", border: "none", color: "#6B7280", fontWeight: 600, cursor: "pointer" },
+
+    btnEdit: { color: "#fff", background: "#b38600", border: "none", padding: "6px", borderRadius: "6px", fontSize: "18px", marginRight: 5, cursor: "pointer", display: "inline-flex" },
+    btnDelete: { color: "#fff", background: "#a01c29", border: "none", padding: "6px", borderRadius: "6px", fontSize: "18px", cursor: "pointer", display: "inline-flex" },
+
+    modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "grid", placeItems: "center", zIndex: 100 },
+    modal: { background: "#fff", width: "400px", borderRadius: "20px", padding: "24px" },
+    modalTitle: { fontSize: "20px", fontWeight: 800 },
+    modalSub: { fontSize: "12px", color: "#6B7280", marginBottom: 15 },
+    formGroup: { marginBottom: "15px" },
+    labelForm: { fontSize: "12px", fontWeight: 700, marginBottom: "5px", display: "block" },
+    input: { width: "100%", height: "42px", borderRadius: "8px", border: "1px solid #D1D5DB", padding: "0 12px", boxSizing: "border-box" },
+    btnPrimaryModal: { flex: 1, background: "#B34E33", color: "#fff", border: 0, height: "44px", borderRadius: "10px", fontWeight: 700, cursor: "pointer" },
+    btnSecondaryModal: { flex: 1, background: "#F3F4F6", border: 0, color: "#374151", height: "44px", borderRadius: "10px", fontWeight: 700, cursor: "pointer" }
 };

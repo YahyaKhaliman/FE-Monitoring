@@ -36,11 +36,11 @@ export default function AppRoute() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/laporan" element={<AuthRoute><LaporanPage /></AuthRoute>} />
-        <Route path="/menu" element={<AuthRoute allow={["ADMIN", "JAHIT", "USER", "SUPERVISOR"]}><DalamPengembanganPage /></AuthRoute>} />
-        <Route path="/spk-target" element={<AuthRoute allow={["ADMIN"]}><SpkTargetPage /></AuthRoute>} />
-        <Route path="/manpower" element={<AuthRoute allow={["ADMIN", "JAHIT"]}><ManPowerPage /></AuthRoute>} />
-        <Route path="/realisasi" element={<AuthRoute allow={["ADMIN", "JAHIT"]}><RealisasiPage /></AuthRoute>} />
-        <Route path="/monitoring" element={<AuthRoute allow={["ADMIN", "JAHIT"]}><MonitoringJobPage /></AuthRoute>} />
+        <Route path="/menu" element={<AuthRoute ><MenuPage /></AuthRoute>} />
+        <Route path="/spk-target" element={<AuthRoute><SpkTargetPage /></AuthRoute>} />
+        <Route path="/manpower" element={<AuthRoute><ManPowerPage /></AuthRoute>} />
+        <Route path="/realisasi" element={<AuthRoute><DalamPengembanganPage /></AuthRoute>} />
+        <Route path="/monitoring" element={<AuthRoute><MonitoringJobPage /></AuthRoute>} />
         <Route path="/change-password" element={<AuthRoute><ChangePasswordPage /></AuthRoute>} />
         <Route path="*" element={<DalamPengembanganPage />} />
       </Routes>

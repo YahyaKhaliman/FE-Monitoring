@@ -286,8 +286,8 @@ export default function LaporanPage() {
         />
         <StatCard
           title="Total SPK"
-          value={`${perSpk.filter((r) => Number(r.spk_close) === 1).length} / ${summary.total_spk}`}
-          desc="Closed / Total"
+          value={`${perSpk.filter((r) => Number(r.pesan && r.total_realisasi / r.pesan >= 1 )).length} / ${summary.total_spk}`}
+          desc="Done / Total"
           color="#4338CA"
         />
       </div>
@@ -493,7 +493,6 @@ export default function LaporanPage() {
     <th rowSpan={2} style={styles.thHighlight}>Detail</th>
     <th rowSpan={2} style={styles.thCenter}>Status</th>
   </tr>
-
   {/* Baris 2: Gabungan Tanggal (Sticky dengan offset top) */}
   <tr>
     <th colSpan={2} style={styles.thSubDate}>
@@ -521,6 +520,7 @@ export default function LaporanPage() {
                     key={i}
                     style={i % 2 === 0 ? styles.trEven : styles.trOdd}
                   >
+                    {/* Identitas SPK */}
                     <td style={styles.td}>
                       <div style={styles.spkName}>{r.nama}</div>
                       <div style={styles.spkId}>{r.spk}</div>
@@ -538,14 +538,19 @@ export default function LaporanPage() {
                         </span>
                       </div>
                     </td>
+                    {/* Target */}
                     <td style={styles.tdDaily}>{formatNumber(r.target)}</td>
+                    {/* Realisasi */}
                     <td style={styles.tdDaily}>{formatNumber(r.realisasi)}</td>
+                    {/* Order */}
                     <td style={styles.tdHighlightNum}>
                       {formatNumber(r.pesan)}
                     </td>
+                    {/* Total Realisasi */}
                     <td style={styles.tdHighlightNum}>
                       {formatNumber(r.total_realisasi)}
                     </td>
+                    {/* Progress */}
                     <td style={styles.tdHighlightNum}>
                       <div style={styles.progressBg}>
                         <div
@@ -566,6 +571,7 @@ export default function LaporanPage() {
                         {formatPercent((r.total_realisasi / r.pesan) * 100)}
                       </div>
                     </td>
+                    {/* Detail */}
                     <td
                       style={{
                         ...styles.tdHighlightNum,
@@ -577,17 +583,16 @@ export default function LaporanPage() {
                         ? `Kurang ${formatNumber(r.sisa)}`
                         : `Sisa ${formatNumber(r.sisa)}`}
                     </td>
+                    {/* Status */}
                     <td style={styles.tdNum}>
                       <span
                         style={{
                           ...styles.statusBadge,
-                          background:
-                            Number(r.spk_close) === 1 ? "#DCFCE7" : "#FEE2E2",
-                          color:
-                            Number(r.spk_close) === 1 ? "#166534" : "#991B1B",
+                          background: (r.pesan && r.total_realisasi / r.pesan >= 1 ) ? "#DCFCE7" : "#FEE2E2",
+                          color: (r.pesan && r.total_realisasi / r.pesan >= 1 ) ? "#166534" : "#991B1B",
                         }}
                       >
-                        {Number(r.spk_close) === 1 ? "CLOSED" : "OPEN"}
+                        {(r.pesan && r.total_realisasi / r.pesan >= 1 ) ? "DONE" : "PROSES"}
                       </span>
                     </td>
                   </tr>
