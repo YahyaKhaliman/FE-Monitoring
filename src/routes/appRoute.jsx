@@ -15,36 +15,88 @@ import "react-toastify/dist/ReactToastify.css";
 import DalamPengembanganPage from "../pages/dalamPengembanganPage";
 
 function AuthRoute({ allow, children }) {
-  const user = loadUser();
-  if (!user) return <Navigate to="/login" replace />;
-  if (allow) {
-    const role = (user.user_bagian || "").toUpperCase();
-    if (!allow.includes(role)) {
-      if (role === "OWNER") return <Navigate to="/laporan" replace />;
-      return <Navigate to="/menu" replace />;
+    const user = loadUser();
+    if (!user) return <Navigate to="/login" replace />;
+    if (allow) {
+        const role = (user.user_bagian || "").toUpperCase();
+        if (!allow.includes(role)) {
+            if (role === "OWNER") return <Navigate to="/laporan" replace />;
+            return <Navigate to="/menu" replace />;
+        }
     }
-  }
-  return children;
+    return children;
 }
 
 export default function AppRoute() {
-  const { isReady } = useAuth();
-  if (!isReady) return <div style={{ textAlign: "center", marginTop: 80 }}>Loading...</div>;
+    const { isReady } = useAuth();
+    if (!isReady)
+        return (
+            <div style={{ textAlign: "center", marginTop: 80 }}>Loading...</div>
+        );
 
-  return (
-    <>
-      <Routes>
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/laporan" element={<AuthRoute><LaporanPage /></AuthRoute>} />
-        <Route path="/menu" element={<AuthRoute ><MenuPage /></AuthRoute>} />
-        <Route path="/spk-target" element={<AuthRoute><SpkTargetPage /></AuthRoute>} />
-        <Route path="/manpower" element={<AuthRoute><ManPowerPage /></AuthRoute>} />
-        <Route path="/realisasi" element={<AuthRoute><DalamPengembanganPage /></AuthRoute>} />
-        <Route path="/monitoring" element={<AuthRoute><MonitoringJobPage /></AuthRoute>} />
-        <Route path="/change-password" element={<AuthRoute><ChangePasswordPage /></AuthRoute>} />
-        <Route path="*" element={<DalamPengembanganPage />} />
-      </Routes>
-      <ToastContainer position="top-center" autoClose={3000} />
-    </>
-  );
+    return (
+        <>
+            <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route
+                    path="/laporan"
+                    element={
+                        <AuthRoute>
+                            <LaporanPage />
+                        </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/menu"
+                    element={
+                        <AuthRoute>
+                            <MenuPage />
+                        </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/spk-target"
+                    element={
+                        <AuthRoute>
+                            <SpkTargetPage />
+                        </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/manpower"
+                    element={
+                        <AuthRoute>
+                            <ManPowerPage />
+                        </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/realisasi"
+                    element={
+                        <AuthRoute>
+                            <RealisasiPage />
+                        </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/monitoring"
+                    element={
+                        <AuthRoute>
+                            <MonitoringJobPage />
+                        </AuthRoute>
+                    }
+                />
+                <Route
+                    path="/change-password"
+                    element={
+                        <AuthRoute>
+                            <ChangePasswordPage />
+                        </AuthRoute>
+                    }
+                />
+                <Route path="*" element={<DalamPengembanganPage />} />
+            </Routes>
+            <ToastContainer position="top-center" autoClose={3000} />
+        </>
+    );
 }

@@ -13,19 +13,27 @@ import {
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { MdEdit, MdDelete } from "react-icons/md";
+import { RxCross1 } from "react-icons/rx";
 
 export default function SpkTargetPage() {
     const navigate = useNavigate();
 
     // Ambil state dari navigasi jika ada (misal dari MenuPage)
-    const locationState = (typeof window !== 'undefined' && window.history?.state?.usr) ? window.history.state.usr : {};
+    const locationState =
+        typeof window !== "undefined" && window.history?.state?.usr
+            ? window.history.state.usr
+            : {};
     const user = useMemo(() => loadUser(), []);
-    const isAdmin = ["ADMIN", "IT"].includes((user?.user_bagian || "").toUpperCase());
+    const isAdmin = ["ADMIN", "IT"].includes(
+        (user?.user_bagian || "").toUpperCase(),
+    );
 
     // --- States ---
     const [liniList, setLiniList] = useState([]);
     const [selectedLini, setSelectedLini] = useState("");
     const [rows, setRows] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isLiniOpen, setIsLiniOpen] = useState(false);
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState(null);
 
@@ -129,7 +137,8 @@ export default function SpkTargetPage() {
 
     const onSave = async (e) => {
         e.preventDefault();
-        if (!nomor.trim() || !targetPerJam) return toast.warning("Data belum lengkap");
+        if (!nomor.trim() || !targetPerJam)
+            return toast.warning("Data belum lengkap");
 
         setLoading(true);
         try {
@@ -147,7 +156,7 @@ export default function SpkTargetPage() {
                     ...payload,
                     nomor: nomor.trim(),
                     nama,
-                    user_create: user.user_kode
+                    user_create: user.user_kode,
                 });
             }
 
@@ -168,44 +177,139 @@ export default function SpkTargetPage() {
     const onDelete = async (r) => {
         if (!window.confirm(`Hapus target SPK ${r.nomor}?`)) return;
         try {
-            const res = await deleteSpkTarget(r.nomor, user.user_cab, selectedLini);
+            const res = await deleteSpkTarget(
+                r.nomor,
+                user.user_cab,
+                selectedLini,
+            );
             if (res.ok) {
                 toast.success("Terhapus");
                 refresh();
             }
-        } catch (e) { toast.error("Gagal hapus"); }
+        } catch (e) {
+            toast.error("Gagal hapus");
+        }
     };
+
+    const filteredRows = useMemo(() => {
+        const keyword = searchTerm.trim().toLowerCase();
+        if (!keyword) return rows;
+
+        return rows.filter((r) => {
+            const nomor = String(r.nomor || "").toLowerCase();
+            const nama = String(r.nama || "").toLowerCase();
+            return nomor.includes(keyword) || nama.includes(keyword);
+        });
+    }, [rows, searchTerm]);
 
     return (
         <div style={styles.page}>
             <div style={styles.header}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                    <button style={styles.btnGhost} onClick={() => navigate("/menu")}>← Back</button>
+                    <button
+                        style={styles.btnGhost}
+                        onClick={() => navigate("/menu")}
+                    >
+                        ← Back
+                    </button>
                     <div>
                         <div style={styles.title}>SPK Target per Jam</div>
-                        <div style={styles.sub}>{user?.user_nama} • {selectedLini}</div>
+                        <div style={styles.sub}>
+                            {user?.user_nama} • {selectedLini}
+                        </div>
                     </div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                     <button
                         style={styles.btnSecondary}
-                        onClick={() => toast.promise(refreshWithToast(), { pending: 'Sinkronisasi data...', success: 'Sinkronisasi selesai', error: 'Gagal sinkronisasi' })}
+                        onClick={() =>
+                            toast.promise(refreshWithToast(), {
+                                pending: "Sinkronisasi data...",
+                                success: "Sinkronisasi selesai",
+                                error: "Gagal sinkronisasi",
+                            })
+                        }
                         disabled={loading}
                     >
                         Refresh
                     </button>
-                    {isAdmin && <button style={styles.btnPrimary} onClick={() => { setEditMode(false); setNomor(""); setNama(""); setTargetPerJam(""); setSpkClosed(false); setOpenForm(true); }}>+ Tambah</button>}
+                    {isAdmin && (
+                        <button
+                            style={styles.btnPrimary}
+                            onClick={() => {
+                                setEditMode(false);
+                                setNomor("");
+                                setNama("");
+                                setTargetPerJam("");
+                                setSpkClosed(false);
+                                setOpenForm(true);
+                            }}
+                        >
+                            + Tambah
+                        </button>
+                    )}
                 </div>
             </div>
 
             <div style={styles.filters}>
                 <div style={{ flex: 1 }}>
                     <label style={styles.label}>Pilih Lini Produksi</label>
-                    <select value={selectedLini} onChange={(e) => setSelectedLini(e.target.value)} style={styles.select}>
-                        {liniList.map((l) => (
-                            <option key={l.lini_kode || l.lini_nama} value={l.lini_nama}>{l.lini_nama}</option>
-                        ))}
-                    </select>
+                    <div style={styles.selectWrap}>
+                        <select
+                            value={selectedLini}
+                            onChange={(e) => {
+                                setSelectedLini(e.target.value);
+                                setIsLiniOpen(false);
+                            }}
+                            onFocus={() => setIsLiniOpen(true)}
+                            onBlur={() => setIsLiniOpen(false)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Escape") {
+                                    setIsLiniOpen(false);
+                                }
+                            }}
+                            style={styles.select}
+                        >
+                            {liniList.map((l) => (
+                                <option
+                                    key={l.lini_kode || l.lini_nama}
+                                    value={l.lini_nama}
+                                >
+                                    {l.lini_nama}
+                                </option>
+                            ))}
+                        </select>
+                        <span
+                            style={{
+                                ...styles.selectArrow,
+                                transform: isLiniOpen
+                                    ? "translateY(-50%) rotate(180deg)"
+                                    : "translateY(-50%) rotate(0deg)",
+                            }}
+                        />
+                    </div>
+                </div>
+
+                <div style={{ flex: 1 }}>
+                    <label style={styles.label}>Cari SPK / Nama Produk</label>
+                    <div style={styles.searchWrap}>
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Ketik nomor SPK atau Nama Produk..."
+                            style={styles.searchInput}
+                        />
+                        {searchTerm && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchTerm("")}
+                                style={styles.clearSearchBtn}
+                            >
+                                <RxCross1 />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -214,65 +318,165 @@ export default function SpkTargetPage() {
                     <thead>
                         <tr>
                             <th style={styles.th}>Nomor SPK</th>
-                            <th style={styles.th}>Nama Barang</th>
+                            <th style={styles.th}>Nama Produk</th>
                             <th style={styles.thCenter}>Target/Jam</th>
                             {isAdmin && <th style={styles.thCenter}>Aksi</th>}
                         </tr>
                     </thead>
                     <tbody>
-                        {rows.map((r, i) => (
-                            <tr key={r.nomor} style={i % 2 === 0 ? styles.trEven : styles.trOdd}>
+                        {filteredRows.map((r, i) => (
+                            <tr
+                                key={r.nomor}
+                                style={
+                                    i % 2 === 0 ? styles.trEven : styles.trOdd
+                                }
+                            >
                                 <td style={styles.tdNomor}>{r.nomor}</td>
                                 <td style={styles.td}>{r.nama || "-"}</td>
                                 <td style={styles.tdTarget}>{r.target}</td>
                                 {isAdmin && (
                                     <td style={styles.tdCenter}>
-                                        <button style={styles.btnEdit} onClick={() => { setEditMode(true); setNomor(r.nomor); setNama(r.nama); setTargetPerJam(r.target); setSpkClosed(false); setOpenForm(true); }}><MdEdit /></button>
-                                        <button style={styles.btnDelete} onClick={() => onDelete(r)}><MdDelete /></button>
+                                        <button
+                                            style={styles.btnEdit}
+                                            onClick={() => {
+                                                setEditMode(true);
+                                                setNomor(r.nomor);
+                                                setNama(r.nama);
+                                                setTargetPerJam(r.target);
+                                                setSpkClosed(false);
+                                                setOpenForm(true);
+                                            }}
+                                        >
+                                            <MdEdit />
+                                        </button>
+                                        <button
+                                            style={styles.btnDelete}
+                                            onClick={() => onDelete(r)}
+                                        >
+                                            <MdDelete />
+                                        </button>
                                     </td>
                                 )}
                             </tr>
                         ))}
                     </tbody>
                 </table>
-                {rows.length === 0 && !loading && <div style={styles.empty}>Data tidak ditemukan</div>}
+                {filteredRows.length === 0 && !loading && (
+                    <div style={styles.empty}>Data tidak ditemukan</div>
+                )}
             </div>
 
             {/* MODAL */}
             {openForm && (
-                <div style={styles.modalOverlay} onClick={() => setOpenForm(false)}>
-                    <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
-                        <div style={styles.modalTitle}>{editMode ? "Edit Target" : "Tambah Target"}</div>
-                        <p style={styles.modalSub}>Lini: {selectedLini} | Cabang: {user?.user_cab}</p>
+                <div
+                    style={styles.modalOverlay}
+                    onClick={() => setOpenForm(false)}
+                >
+                    <div
+                        style={styles.modal}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div style={styles.modalTitle}>
+                            {editMode ? "Edit Target" : "Tambah Target"}
+                        </div>
+                        <p style={styles.modalSub}>
+                            Lini: {selectedLini} | Cabang: {user?.user_cab}
+                        </p>
 
                         <form onSubmit={onSave} style={{ marginTop: 20 }}>
                             <div style={styles.formGroup}>
-                                <label style={styles.labelForm}>Nomor SPK</label>
-                                <div style={{ display: 'flex', gap: 8 }}>
+                                <label style={styles.labelForm}>
+                                    Nomor SPK
+                                </label>
+                                <div style={{ display: "flex", gap: 8 }}>
                                     <input
-                                        style={{ ...styles.input, flex: 1, backgroundColor: (editMode || spkClosed) ? "#F3F4F6" : "#fff" }}
+                                        style={{
+                                            ...styles.input,
+                                            flex: 1,
+                                            backgroundColor:
+                                                editMode || spkClosed
+                                                    ? "#F3F4F6"
+                                                    : "#fff",
+                                        }}
                                         value={nomor}
-                                        onChange={(e) => { setNomor(e.target.value.toUpperCase()); if(!editMode){setNama(""); setSpkClosed(false);} }}
+                                        onChange={(e) => {
+                                            setNomor(
+                                                e.target.value.toUpperCase(),
+                                            );
+                                            if (!editMode) {
+                                                setNama("");
+                                                setSpkClosed(false);
+                                            }
+                                        }}
                                         disabled={editMode || spkClosed}
                                         placeholder="Input Nomor..."
                                     />
-                                    {!editMode && <button type="button" style={styles.btnCari} onClick={handleCariSpk} disabled={loadingCari || !nomor}>{loadingCari ? '...' : 'Cari'}</button>}
+                                    {!editMode && (
+                                        <button
+                                            type="button"
+                                            style={styles.btnCari}
+                                            onClick={handleCariSpk}
+                                            disabled={loadingCari || !nomor}
+                                        >
+                                            {loadingCari ? "..." : "Cari"}
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
                             <div style={styles.formGroup}>
-                                <label style={styles.labelForm}>Nama Barang</label>
-                                <input style={{...styles.input, backgroundColor: "#F9FAFB"}} value={nama} readOnly placeholder="Otomatis terisi..." />
+                                <label style={styles.labelForm}>
+                                    Nama Produk
+                                </label>
+                                <input
+                                    style={{
+                                        ...styles.input,
+                                        backgroundColor: "#F9FAFB",
+                                    }}
+                                    disabled={true}
+                                    value={nama}
+                                    readOnly
+                                    placeholder="Otomatis terisi..."
+                                />
                             </div>
 
                             <div style={styles.formGroup}>
-                                <label style={styles.labelForm}>Target per Jam</label>
-                                <input style={styles.input} type="number" value={targetPerJam} onChange={(e) => setTargetPerJam(e.target.value)} disabled={spkClosed} />
+                                <label style={styles.labelForm}>
+                                    Target per Jam
+                                </label>
+                                <input
+                                    style={styles.input}
+                                    type="number"
+                                    value={targetPerJam}
+                                    onChange={(e) =>
+                                        setTargetPerJam(e.target.value)
+                                    }
+                                    disabled={spkClosed}
+                                />
                             </div>
 
-                            <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-                                <button type="button" style={styles.btnSecondaryModal} onClick={() => setOpenForm(false)}>Batal</button>
-                                <button type="submit" style={{...styles.btnPrimaryModal, opacity: spkClosed ? 0.5 : 1}} disabled={spkClosed || loading}>
+                            <div
+                                style={{
+                                    display: "flex",
+                                    gap: 10,
+                                    marginTop: 24,
+                                }}
+                            >
+                                <button
+                                    type="button"
+                                    style={styles.btnSecondaryModal}
+                                    onClick={() => setOpenForm(false)}
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    style={{
+                                        ...styles.btnPrimaryModal,
+                                        opacity: spkClosed ? 0.5 : 1,
+                                    }}
+                                    disabled={spkClosed || loading}
+                                >
                                     {spkClosed ? "SPK CLOSED" : "Simpan"}
                                 </button>
                             </div>
@@ -285,37 +489,255 @@ export default function SpkTargetPage() {
 }
 
 const styles = {
-    page: { minHeight: "100vh", background: "#F9FAFB", padding: "20px", fontFamily: "'Readex Pro', sans-serif" },
-    header: { display: "flex", justifyContent: "space-between", alignItems: "center", background: "#fff", padding: "15px 20px", borderRadius: "16px", border: "1px solid #E5E7EB", marginBottom: 20 },
+    page: {
+        minHeight: "100vh",
+        background: "#F9FAFB",
+        padding: "20px",
+        fontFamily: "'Readex Pro', sans-serif",
+    },
+    header: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        background: "#fff",
+        padding: "15px 20px",
+        borderRadius: "16px",
+        border: "1px solid #E5E7EB",
+        marginBottom: 20,
+    },
     title: { fontSize: "18px", fontWeight: 800, color: "#111827" },
     sub: { fontSize: "12px", color: "#6B7280" },
-    filters: { background: "#fff", border: "1px solid #E5E7EB", borderRadius: "12px", padding: "15px 20px", marginBottom: 15 },
-    label: { fontSize: "11px", fontWeight: 800, color: "#374151", textTransform: "uppercase", marginBottom: 8, display: "block" },
-    select: { width: "100%", maxWidth: "300px", height: "40px", borderRadius: "8px", border: "1px solid #D1D5DB", padding: "0 10px", outline: "none" },
-    tableWrap: { background: "#fff", border: "1px solid #E5E7EB", borderRadius: "16px", overflow: "hidden" },
+    filters: {
+        background: "#fff",
+        border: "1px solid #E5E7EB",
+        borderRadius: "12px",
+        padding: "15px 20px",
+        marginBottom: 15,
+        display: "flex",
+        gap: 12,
+        alignItems: "end",
+    },
+    label: {
+        fontSize: "11px",
+        fontWeight: 800,
+        color: "#374151",
+        textTransform: "uppercase",
+        marginBottom: 8,
+        display: "block",
+    },
+    select: {
+        width: "100%",
+        maxWidth: "300px",
+        height: "40px",
+        borderRadius: "8px",
+        border: "1px solid #D1D5DB",
+        padding: "0 36px 0 10px",
+        outline: "none",
+        appearance: "none",
+        WebkitAppearance: "none",
+        MozAppearance: "none",
+    },
+    selectWrap: { position: "relative", width: "100%", maxWidth: "300px" },
+    selectArrow: {
+        position: "absolute",
+        right: 12,
+        top: "50%",
+        width: 0,
+        height: 0,
+        borderLeft: "5px solid transparent",
+        borderRight: "5px solid transparent",
+        borderTop: "6px solid #6B7280",
+        pointerEvents: "none",
+        transition: "transform 180ms ease",
+    },
+    searchWrap: { position: "relative", width: "100%", maxWidth: "420px" },
+    searchInput: {
+        width: "90%",
+        height: "40px",
+        borderRadius: "8px",
+        border: "1px solid #D1D5DB",
+        padding: "0 36px 0 12px",
+        outline: "none",
+    },
+    clearSearchBtn: {
+        position: "absolute",
+        right: 10,
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: 24,
+        height: 24,
+        borderRadius: "50%",
+        border: "1px solid #D1D5DB",
+        background: "#fff",
+        color: "#6B7280",
+        cursor: "pointer",
+        lineHeight: "20px",
+        fontSize: "16px",
+        fontWeight: 700,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 0,
+        zIndex: 1,
+    },
+    tableWrap: {
+        background: "#fff",
+        border: "1px solid #E5E7EB",
+        borderRadius: "16px",
+        overflow: "hidden",
+    },
     table: { width: "100%", borderCollapse: "collapse" },
-    th: { textAlign: "left", padding: "14px 20px", fontSize: "11px", fontWeight: 800, background: "#F9FAFB", borderBottom: "1px solid #E5E7EB", color: "#4B5563" },
-    thCenter: { textAlign: "center", padding: "14px 20px", fontSize: "11px", fontWeight: 800, background: "#F9FAFB", borderBottom: "1px solid #E5E7EB" },
-    td: { padding: "14px 20px", borderBottom: "1px solid #F3F4F6", fontSize: "14px" },
-    tdNomor: { padding: "14px 20px", borderBottom: "1px solid #F3F4F6", fontSize: "14px", fontWeight: 700 },
-    tdTarget: { padding: "14px 20px", borderBottom: "1px solid #F3F4F6", fontSize: "14px", fontWeight: 800, color: "#B34E33", textAlign: "center", fontFamily: "'Inter', sans-serif" },
-    tdCenter: { padding: "14px 20px", borderBottom: "1px solid #F3F4F6", textAlign: "center" },
+    th: {
+        textAlign: "left",
+        padding: "14px 20px",
+        fontSize: "11px",
+        fontWeight: 800,
+        background: "#F9FAFB",
+        borderBottom: "1px solid #E5E7EB",
+        color: "#4B5563",
+    },
+    thCenter: {
+        textAlign: "center",
+        padding: "14px 20px",
+        fontSize: "11px",
+        fontWeight: 800,
+        background: "#F9FAFB",
+        borderBottom: "1px solid #E5E7EB",
+    },
+    td: {
+        padding: "14px 20px",
+        borderBottom: "1px solid #F3F4F6",
+        fontSize: "14px",
+    },
+    tdNomor: {
+        padding: "14px 20px",
+        borderBottom: "1px solid #F3F4F6",
+        fontSize: "14px",
+        fontWeight: 700,
+    },
+    tdTarget: {
+        padding: "14px 20px",
+        borderBottom: "1px solid #F3F4F6",
+        fontSize: "14px",
+        fontWeight: 800,
+        color: "#B34E33",
+        textAlign: "center",
+        fontFamily: "'Inter', sans-serif",
+    },
+    tdCenter: {
+        padding: "14px 20px",
+        borderBottom: "1px solid #F3F4F6",
+        textAlign: "center",
+    },
     trEven: { background: "#fff" },
     trOdd: { background: "#FBFBFA" },
-    empty: { padding: "40px", textAlign: "center", color: "#9CA3AF", fontStyle: "italic" },
-    btnPrimary: { background: "#B34E33", color: "#fff", border: 0, padding: "0 20px", height: "40px", borderRadius: "8px", fontWeight: 700, cursor: "pointer" },
-    btnSecondary: { background: "#fff", border: "1px solid #D1D5DB", height: "40px", padding: "0 15px", borderRadius: "8px", cursor: "pointer", fontWeight: 700 },
-    btnGhost: { background: "none", border: "none", color: "#6B7280", fontWeight: 600, cursor: "pointer" },
-    btnEdit: { color: "#fff", background: "#b38600", border: "1px solid #D1D5DB", padding: "5px 12px", borderRadius: "6px", fontSize: "12px", marginRight: 5, cursor: "pointer" },
-    btnDelete: { background: "#a01c29", border: "1px solid #FEE2E2", color: "#ffffff", padding: "5px 12px", borderRadius: "6px", fontSize: "12px", cursor: "pointer" },
-    modalOverlay: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", display: "grid", placeItems: "center", zIndex: 100 },
-    modal: { background: "#fff", width: "400px", borderRadius: "20px", padding: "24px" },
+    empty: {
+        padding: "40px",
+        textAlign: "center",
+        color: "#9CA3AF",
+        fontStyle: "italic",
+    },
+    btnPrimary: {
+        background: "#B34E33",
+        color: "#fff",
+        border: 0,
+        padding: "0 20px",
+        height: "40px",
+        borderRadius: "8px",
+        fontWeight: 700,
+        cursor: "pointer",
+    },
+    btnSecondary: {
+        background: "#fff",
+        border: "1px solid #D1D5DB",
+        height: "40px",
+        padding: "0 15px",
+        borderRadius: "8px",
+        cursor: "pointer",
+        fontWeight: 700,
+    },
+    btnGhost: {
+        background: "none",
+        border: "none",
+        color: "#6B7280",
+        fontWeight: 600,
+        cursor: "pointer",
+    },
+    btnEdit: {
+        color: "#fff",
+        background: "#b38600",
+        border: "1px solid #D1D5DB",
+        padding: "5px 12px",
+        borderRadius: "6px",
+        fontSize: "12px",
+        marginRight: 5,
+        cursor: "pointer",
+    },
+    btnDelete: {
+        background: "#a01c29",
+        border: "1px solid #FEE2E2",
+        color: "#ffffff",
+        padding: "5px 12px",
+        borderRadius: "6px",
+        fontSize: "12px",
+        cursor: "pointer",
+    },
+    modalOverlay: {
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.4)",
+        display: "grid",
+        placeItems: "center",
+        zIndex: 100,
+    },
+    modal: {
+        background: "#fff",
+        width: "400px",
+        borderRadius: "20px",
+        padding: "24px",
+    },
     modalTitle: { fontSize: "20px", fontWeight: 800 },
     modalSub: { fontSize: "12px", color: "#6B7280" },
     formGroup: { marginBottom: "15px" },
-    labelForm: { fontSize: "12px", fontWeight: 700, marginBottom: "5px", display: "block" },
-    input: { width: "100%", height: "42px", borderRadius: "8px", border: "1px solid #D1D5DB", padding: "0 12px", boxSizing: "border-box" },
-    btnCari: { background: "#E5E7EB", border: "1px solid #D1D5DB", borderRadius: "8px", padding: "0 15px", fontWeight: 700, cursor: "pointer" },
-    btnPrimaryModal: { flex: 1, background: "#B34E33", color: "#fff", border: 0, height: "44px", borderRadius: "10px", fontWeight: 700, cursor: "pointer" },
-    btnSecondaryModal: { flex: 1, background: "#F3F4F6", border: 0, height: "44px", borderRadius: "10px", fontWeight: 700, cursor: "pointer" }
+    labelForm: {
+        fontSize: "12px",
+        fontWeight: 700,
+        marginBottom: "5px",
+        display: "block",
+    },
+    input: {
+        width: "100%",
+        height: "42px",
+        borderRadius: "8px",
+        border: "1px solid #D1D5DB",
+        padding: "0 12px",
+        boxSizing: "border-box",
+    },
+    btnCari: {
+        background: "#E5E7EB",
+        border: "1px solid #D1D5DB",
+        borderRadius: "8px",
+        padding: "0 15px",
+        fontWeight: 700,
+        cursor: "pointer",
+    },
+    btnPrimaryModal: {
+        flex: 1,
+        background: "#B34E33",
+        color: "#fff",
+        border: 0,
+        height: "44px",
+        borderRadius: "10px",
+        fontWeight: 700,
+        cursor: "pointer",
+    },
+    btnSecondaryModal: {
+        flex: 1,
+        background: "#F3F4F6",
+        border: 0,
+        height: "44px",
+        borderRadius: "10px",
+        fontWeight: 700,
+        cursor: "pointer",
+    },
 };

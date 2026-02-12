@@ -21,7 +21,10 @@ export async function createSpkTarget(payload) {
 }
 
 export async function updateSpkTarget(nomor, payload) {
-    const res = await api.put(`/spk-target/${encodeURIComponent(nomor)}`, payload);
+    const res = await api.put(
+        `/spk-target/${encodeURIComponent(nomor)}`,
+        payload,
+    );
     return res.data;
 }
 
