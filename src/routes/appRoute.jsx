@@ -38,6 +38,7 @@ export default function AppRoute() {
         <>
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/" element={<Navigate to="/login" replace />} />
                 <Route
                     path="/laporan"
                     element={
