@@ -302,7 +302,7 @@ export default function RealisasiJobPage() {
 
     return (
         <div style={styles.page}>
-            {/* HEADER - Konsisten dengan SpkTarget & ManPower */}
+            {/* HEADER */}
             <div style={styles.header}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <button
@@ -407,28 +407,13 @@ export default function RealisasiJobPage() {
             <div style={styles.tableWrap}>
                 <table style={styles.table}>
                     <thead>
-                        {/* Baris 1: Judul Utama */}
                         <tr>
-                            <th rowSpan={2} style={styles.th}>
-                                Jam
-                            </th>
-                            <th rowSpan={2} style={styles.th}>
-                                Identitas Barang / SPK
-                            </th>
-                            <th colSpan={2} style={styles.thHighlight}>
-                                Target & Realisasi
-                            </th>
-                            <th rowSpan={2} style={styles.thCenter}>
-                                Kelompok
-                            </th>
-                            <th rowSpan={2} style={styles.thCenter}>
-                                Lini
-                            </th>
-                        </tr>
-                        {/* Baris 2: Sub-header */}
-                        <tr>
-                            <th style={styles.thSub}>Target</th>
-                            <th style={styles.thSub}>Realisasi</th>
+                            <th style={styles.th}>Jam</th>
+                            <th style={styles.th}>Identitas Barang / SPK</th>
+                            <th style={styles.thHighlight}>Target</th>
+                            <th style={styles.thHighlight}>Realisasi</th>
+                            <th style={styles.thCenter}>Kelompok</th>
+                            <th style={styles.thCenter}>Lini</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -800,6 +785,7 @@ const styles = {
         padding: "0 12px",
         outline: "none",
         fontSize: 14,
+        fontFamily: "inherit",
     },
     select: {
         height: 40,
