@@ -13,10 +13,8 @@ export function saveUser(user) {
 export function loadUser() {
     const raw = localStorage.getItem(KEY_USER);
 
-    // tidak ada data
     if (!raw) return null;
 
-    // kalau pernah tersimpan "undefined" / "null"
     if (raw === "undefined" || raw === "null") {
         localStorage.removeItem(KEY_USER);
         return null;
@@ -25,7 +23,6 @@ export function loadUser() {
     try {
         return JSON.parse(raw);
     } catch (e) {
-        // kalau JSON rusak, bersihkan biar app tidak crash
         localStorage.removeItem(KEY_USER);
         return null;
     }
