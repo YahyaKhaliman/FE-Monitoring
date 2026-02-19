@@ -318,18 +318,6 @@ export default function RealisasiJobPage() {
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                     <button
-                        style={{
-                            ...styles.btnPrimary,
-                            opacity: 1,
-                            cursor: "pointer",
-                        }}
-                        onClick={openAddForm}
-                        disabled={false}
-                        title="Tambah realisasi"
-                    >
-                        + Tambah Realisasi
-                    </button>
-                    <button
                         style={styles.btnSecondary}
                         onClick={() =>
                             toast.promise(refreshData(), {
@@ -341,6 +329,18 @@ export default function RealisasiJobPage() {
                         disabled={loading}
                     >
                         {loading ? "..." : "Refresh"}
+                    </button>
+                    <button
+                        style={{
+                            ...styles.btnPrimary,
+                            opacity: 1,
+                            cursor: "pointer",
+                        }}
+                        onClick={openAddForm}
+                        disabled={false}
+                        title="Tambah realisasi"
+                    >
+                        + Tambah Realisasi
                     </button>
                 </div>
             </div>

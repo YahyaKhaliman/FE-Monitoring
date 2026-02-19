@@ -22,7 +22,7 @@ export default function ChangePasswordPage() {
 
         setLoading(true);
         try {
-            const res = await changePassword(user.user_kode, oldPass, newPass);
+            const res = await changePassword(user?.user_kode, oldPass, newPass);
 
             if (res.ok) {
                 setOldPass("");

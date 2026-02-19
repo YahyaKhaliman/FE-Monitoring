@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { loadUser, saveUser, clearUser } from "../utils/storage";
+import { loadUser, saveUser, clearUser, saveToken, clearToken } from "../utils/storage";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext(null);
@@ -11,14 +11,16 @@ export function AuthProvider({ children }) {
     const [user, setUser] = useState(() => loadUser());
     const isReady = true;
 
-    function login(userObject) {
+    function login(userObject, token) {
         if (!userObject) return;
         saveUser(userObject);
+        saveToken(token);
         setUser(userObject);
     }
 
     function logout() {
         clearUser();
+        clearToken();
         setUser(null);
         navigate("/login", { replace: true });
     }

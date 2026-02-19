@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 const KEY_USER = "monjob_user";
 const KEY_CRED = "monjob_cred";
+const KEY_TOKEN = "monjob_token";
 
 export function saveUser(user) {
     if (!user) {
@@ -32,8 +33,33 @@ export function clearUser() {
     localStorage.removeItem(KEY_USER);
 }
 
-export function saveCred(username, password) {
-    localStorage.setItem(KEY_CRED, JSON.stringify({ username, password }));
+export function saveToken(token) {
+    if (!token) {
+        localStorage.removeItem(KEY_TOKEN);
+        return;
+    }
+    localStorage.setItem(KEY_TOKEN, token);
+}
+
+export function loadToken() {
+    const token = localStorage.getItem(KEY_TOKEN);
+    if (!token || token === "undefined" || token === "null") {
+        localStorage.removeItem(KEY_TOKEN);
+        return null;
+    }
+    return token;
+}
+
+export function clearToken() {
+    localStorage.removeItem(KEY_TOKEN);
+}
+
+export function saveCred(user_kode) {
+    if (!user_kode) {
+        localStorage.removeItem(KEY_CRED);
+        return;
+    }
+    localStorage.setItem(KEY_CRED, JSON.stringify({ user_kode }));
 }
 
 export function loadCred() {
@@ -46,7 +72,15 @@ export function loadCred() {
     }
 
     try {
-        return JSON.parse(raw);
+        const parsed = JSON.parse(raw);
+
+        // cleanup legacy credential format that stored plaintext password
+        if (parsed?.password || parsed?.username) {
+            localStorage.removeItem(KEY_CRED);
+            return null;
+        }
+
+        return parsed;
     } catch (e) {
         localStorage.removeItem(KEY_CRED);
         return null;

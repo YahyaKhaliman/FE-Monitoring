@@ -36,8 +36,7 @@ export default function LoginPage() {
     }
     const cred = loadCred();
     if (cred) {
-      setUserKode(cred.username || "");
-      setPassword(cred.password || "");
+      setUserKode(cred.user_kode || "");
       setSavePassword(true);
     }
   }, [auth.user]);
@@ -61,14 +60,15 @@ export default function LoginPage() {
 
       const payload = res?.data ?? res;
       const userObj = payload?.data ?? payload ?? {};
+      const token = res?.token || payload?.token || null;
 
       const normalizedUser = {
         ...userObj,
         user_cab: userObj.user_cab ?? userObj.cab ?? userObj.user_cabang ?? userObj.cabang ?? userObj.cab_kode,
       };
 
-      auth.login(normalizedUser);
-      if (savePassword) saveCred(userKode, password);
+      auth.login(normalizedUser, token);
+      if (savePassword) saveCred(userKode);
       else clearCred();
 
       goAfterLogin(normalizedUser);
