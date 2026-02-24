@@ -30,7 +30,7 @@ export default function MonitoringJobPage() {
     const [liniOptions, setLiniOptions] = useState([]);
     const [kelompokOptions, setKelompokOptions] = useState([]);
     const [rows, setRows] = useState([]);
-    const [avg, setAvg] = useState(0);
+    const [persen, setAvg] = useState(0);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
@@ -48,7 +48,7 @@ export default function MonitoringJobPage() {
 
             if (res.ok) {
                 setRows(res.data || []);
-                setAvg(res.avg_persen || 0);
+                setAvg(res.persen || 0);
             } else {
                 setRows([]);
                 setAvg(0);
@@ -111,15 +111,11 @@ export default function MonitoringJobPage() {
                     ? resKelompok.data || []
                     : [];
                 setKelompokOptions(kelompokData);
-                // Set default kelompok jika belum ada
-                if (kelompokData.length > 0) {
-                    setKelompok(kelompokData[0].kelompok);
-                } else {
-                    setKelompok("Line A");
-                }
+                // Default ke ALL agar bisa melihat gabungan semua kelompok
+                setKelompok("ALL");
             } catch {
                 setKelompokOptions([]);
-                setKelompok("Line A");
+                setKelompok("ALL");
             }
         })();
     }, [userCab, lini]);
@@ -130,6 +126,20 @@ export default function MonitoringJobPage() {
         const t = setInterval(loadMonitoring, 20000);
         return () => clearInterval(t);
     }, [tanggal, lini, kelompok]);
+
+    function getSpkCount(spkText) {
+        const raw = String(spkText || "").trim();
+        if (!raw) return 0;
+
+        if (raw.includes(",")) {
+            return raw
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean).length;
+        }
+
+        return 1;
+    }
 
     return (
         <div style={styles.page}>
@@ -163,15 +173,15 @@ export default function MonitoringJobPage() {
                     style={{
                         ...styles.avgCard,
                         background:
-                            avg >= 85
+                            persen >= 85
                                 ? "#059669"
-                                : avg >= 70
+                                : persen >= 70
                                   ? "#B34E33"
                                   : "#DC2626",
                     }}
                 >
                     <div style={styles.avgLabel}>EFEKTIVITAS TOTAL</div>
-                    <div style={styles.avgValue}>{avg}%</div>
+                    <div style={styles.avgValue}>{persen}%</div>
                 </div>
             </div>
 
@@ -210,6 +220,7 @@ export default function MonitoringJobPage() {
                         value={kelompok}
                         onChange={(e) => setKelompok(e.target.value)}
                     >
+                        <option value="ALL">ALL</option>
                         {kelompokOptions.length === 0 && (
                             <option value="">Tidak ada kelompok</option>
                         )}
@@ -238,12 +249,30 @@ export default function MonitoringJobPage() {
                 <table style={styles.table}>
                     <thead>
                         <tr>
-                            <th style={styles.th}>JAM</th>
-                            <th style={styles.th}>MP</th>
-                            <th style={styles.th}>DETAIL SPK / BARANG</th>
-                            <th style={styles.thCenter}>TARGET</th>
-                            <th style={styles.thCenter}>REALISASI</th>
-                            <th style={styles.thCenter}>CAPAIAN (%)</th>
+                            <th style={{ ...styles.th, ...styles.colJam }}>
+                                JAM
+                            </th>
+                            <th style={{ ...styles.th, ...styles.colMp }}>
+                                MP
+                            </th>
+                            <th style={{ ...styles.th, ...styles.colSpk }}>
+                                DETAIL SPK / BARANG
+                            </th>
+                            <th
+                                style={{ ...styles.thCenter, ...styles.colNum }}
+                            >
+                                TARGET
+                            </th>
+                            <th
+                                style={{ ...styles.thCenter, ...styles.colNum }}
+                            >
+                                REALISASI
+                            </th>
+                            <th
+                                style={{ ...styles.thCenter, ...styles.colNum }}
+                            >
+                                CAPAIAN (%)
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -263,11 +292,14 @@ export default function MonitoringJobPage() {
                                             : styles.trOdd
                                     }
                                 >
-                                    <td style={styles.tdJam}>
-                                        🕒 {(r.jam || "").replace("-", "")}
-                                    </td>
+                                    <td style={styles.tdJam}>{r.jam || ""}</td>
                                     <td style={styles.tdMp}>{r.mp}</td>
-                                    <td style={styles.tdSpk}>{r.spk}</td>
+                                    <td style={styles.tdSpk}>
+                                        <div>{r.spk}</div>
+                                        <div style={styles.spkMeta}>
+                                            Total SPK: {getSpkCount(r.spk)}
+                                        </div>
+                                    </td>
                                     <td style={styles.tdTarget}>{r.target}</td>
                                     <td style={styles.tdRealisasi}>
                                         {r.realisasi}
@@ -389,7 +421,15 @@ const styles = {
         overflow: "hidden",
         boxShadow: "0 10px 15px -3px rgba(0,0,0,0.05)",
     },
-    table: { width: "100%", borderCollapse: "collapse" },
+    table: {
+        width: "100%",
+        borderCollapse: "collapse",
+        tableLayout: "fixed",
+    },
+    colJam: { width: "13%" },
+    colMp: { width: "9%" },
+    colSpk: { width: "38%" },
+    colNum: { width: "13.33%" },
     th: {
         textAlign: "left",
         padding: "16px 24px",
@@ -434,6 +474,14 @@ const styles = {
         fontSize: "14px",
         fontWeight: 500,
         color: "#374151",
+    },
+    spkMeta: {
+        marginTop: "6px",
+        fontSize: "11px",
+        fontWeight: 700,
+        color: "#6B7280",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
     },
     tdTarget: {
         padding: "16px 24px",
@@ -481,13 +529,13 @@ const styles = {
         fontSize: "14px",
     },
     btnRefresh: {
-        height: "40px",
-        borderRadius: "8px",
-        border: 0,
-        background: "#B34E33",
-        color: "#fff",
-        fontWeight: 700,
+        height: 38,
         padding: "0 16px",
+        borderRadius: 8,
+        border: "1px solid #D1D5DB",
+        background: "#fff",
+        color: "#374151",
+        fontWeight: 700,
         cursor: "pointer",
     },
     errorBox: {
