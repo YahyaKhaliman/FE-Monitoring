@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import SimpleDatePicker from "../components/SimpleDatePicker";
 import { useNavigate } from "react-router-dom";
