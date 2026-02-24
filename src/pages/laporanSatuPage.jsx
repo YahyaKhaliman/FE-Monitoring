@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import SimpleDatePicker from "../components/SimpleDatePicker";
 import { useNavigate } from "react-router-dom";
 import { getLaporan } from "../services/laporan.service";
+import { getMonitoringKelompok } from "../services/monitoringJob.service";
 import { useAuth } from "../context/authProvider";
 import { toast } from "react-toastify";
 
@@ -45,8 +46,11 @@ export default function LaporanPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
 
-    const isAdmin = (user?.user_bagian || "").toUpperCase() === "ADMIN";
-    const cab = user?.user_cab;
+    const role = (user?.user_bagian || "").toUpperCase();
+    const isAdmin = role === "ADMIN";
+    const isOwner = role === "OWNER";
+    const canSelectKelompok = isAdmin || isOwner;
+    const cab = isOwner ? "P04" : user?.user_cab;
 
     // --- States ---
     const [tglAwal, setTglAwal] = useState(() => {
@@ -56,8 +60,9 @@ export default function LaporanPage() {
     });
     const [tglAkhir, setTglAkhir] = useState(() => toISO(new Date()));
     const [kelompok, setKelompok] = useState(() =>
-        isAdmin ? "" : user?.user_kelompok || "",
+        canSelectKelompok ? "ALL" : user?.user_kelompok || "",
     );
+    const [kelompokOptions, setKelompokOptions] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
 
     const [loading, setLoading] = useState(false);
@@ -75,6 +80,11 @@ export default function LaporanPage() {
         typeof window !== "undefined" ? window.innerWidth : 1280,
     );
 
+    const liniKelompok = useMemo(
+        () => (isAdmin || isOwner ? "JAHIT" : user?.user_bagian || "JAHIT"),
+        [isAdmin, isOwner, user],
+    );
+
     const isMobile = viewportWidth <= 768;
     const isTablet = viewportWidth > 768 && viewportWidth <= 1024;
     const barChartHeight = isMobile ? 240 : isTablet ? 280 : 320;
@@ -90,6 +100,25 @@ export default function LaporanPage() {
         return () => window.removeEventListener("resize", onResize);
     }, []);
 
+    useEffect(() => {
+        if (!cab || !liniKelompok) {
+            setKelompokOptions([]);
+            return;
+        }
+
+        (async () => {
+            try {
+                const res = await getMonitoringKelompok({
+                    cab,
+                    lini: liniKelompok,
+                });
+                setKelompokOptions(res?.ok ? res.data || [] : []);
+            } catch {
+                setKelompokOptions([]);
+            }
+        })();
+    }, [cab, liniKelompok]);
+
     // --- Data Loading ---
     const load = useCallback(async () => {
         setMsg(null);
@@ -98,8 +127,10 @@ export default function LaporanPage() {
             const res = await getLaporan({
                 date_from: tglAwal,
                 date_to: tglAkhir,
-                kelompok: isAdmin
-                    ? kelompok || undefined
+                kelompok: canSelectKelompok
+                    ? kelompok === "ALL"
+                        ? undefined
+                        : kelompok || undefined
                     : user?.user_kelompok || undefined,
                 ...(cab ? { cab } : {}),
             });
@@ -143,7 +174,7 @@ export default function LaporanPage() {
         } finally {
             setLoading(false);
         }
-    }, [tglAwal, tglAkhir, kelompok, isAdmin, user, cab]);
+    }, [tglAwal, tglAkhir, kelompok, canSelectKelompok, user, cab]);
 
     useEffect(() => {
         load();
@@ -571,6 +602,22 @@ export default function LaporanPage() {
                 >
                     Hari Ini
                 </button>
+                <div style={styles.filterGroup}>
+                    <label style={styles.label}>Kelompok</label>
+                    <select
+                        style={styles.select}
+                        value={kelompok}
+                        onChange={(e) => setKelompok(e.target.value)}
+                        disabled={!canSelectKelompok}
+                    >
+                        <option value="ALL">ALL</option>
+                        {kelompokOptions.map((item) => (
+                            <option key={item.kelompok} value={item.kelompok}>
+                                {item.kelompok}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             </div>
 
             {msg && <div style={styles.errorAlert}>{msg}</div>}
@@ -961,6 +1008,17 @@ const styles = {
         fontSize: "14px",
         width: "260px",
         outline: "none",
+    },
+    select: {
+        height: "42px",
+        borderRadius: "8px",
+        border: "1px solid #D1D5DB",
+        padding: "0 12px",
+        fontSize: "14px",
+        fontFamily: "inherit",
+        outline: "none",
+        minWidth: "160px",
+        background: "#fff",
     },
     clearBtn: {
         position: "absolute",
