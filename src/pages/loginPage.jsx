@@ -106,12 +106,12 @@ export default function LoginPage() {
                 <form onSubmit={submit} style={styles.form}>
                     {/* User Kode Input */}
                     <div style={styles.inputGroup}>
-                        <label style={styles.label}>User Kode</label>
+                        <label style={styles.label}>Username</label>
                         <div style={styles.inputWrapper}>
                             <AiOutlineUser style={styles.icon} />
                             <input
                                 style={styles.input}
-                                placeholder="Masukkan kode user"
+                                placeholder="Masukkan username"
                                 value={userKode}
                                 autoCapitalize="characters"
                                 onChange={(e) =>
