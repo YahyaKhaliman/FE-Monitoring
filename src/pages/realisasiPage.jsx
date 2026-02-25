@@ -5,7 +5,7 @@ import {
     getJamOptions,
     saveRealisasi,
 } from "../services/realisasi.service";
-import { cariSpkTarget } from "../services/spkTarget.service";
+import { cariSpkTarget, getSpkTargets } from "../services/spkTarget.service";
 import { getManPower } from "../services/manPower.service";
 import { loadUser } from "../utils/storage";
 import { useNavigate } from "react-router-dom";
@@ -55,8 +55,12 @@ export default function RealisasiJobPage() {
     const [loading, setLoading] = useState(false);
     const [saving, setSaving] = useState(false);
     const [searchingSpk, setSearchingSpk] = useState(false);
+    const [loadingSpkList, setLoadingSpkList] = useState(false);
     const [deviceNow, setDeviceNow] = useState(() => new Date());
     const [openForm, setOpenForm] = useState(false);
+    const [openSpkSearch, setOpenSpkSearch] = useState(false);
+    const [spkKeyword, setSpkKeyword] = useState("");
+    const [spkListSource, setSpkListSource] = useState([]);
     const [form, setForm] = useState({
         tanggal: new Date().toISOString().slice(0, 10),
         lini: isAdmin ? "JAHIT" : user?.user_bagian || "JAHIT",
@@ -126,6 +130,33 @@ export default function RealisasiJobPage() {
         });
     }, [jamNeedInput, form.tanggal, deviceNow]);
 
+    const spkListFiltered = useMemo(() => {
+        const keyword = String(spkKeyword || "")
+            .trim()
+            .toUpperCase();
+        if (!keyword) return spkListSource;
+
+        return spkListSource.filter((row) => {
+            const nomor = String(row.nomor || "").toUpperCase();
+            const nama = String(row.nama || "").toUpperCase();
+            return nomor.includes(keyword) || nama.includes(keyword);
+        });
+    }, [spkListSource, spkKeyword]);
+
+    const parseTimestamp = (value) => {
+        const t = new Date(value || 0).getTime();
+        return Number.isFinite(t) ? t : 0;
+    };
+
+    const sortByLatestTanggal = (rows) => {
+        return [...rows].sort((a, b) => {
+            const ta = parseTimestamp(a.tanggal);
+            const tb = parseTimestamp(b.tanggal);
+            if (tb !== ta) return tb - ta;
+            return String(a.nomor || "").localeCompare(String(b.nomor || ""));
+        });
+    };
+
     // --- Data Loading ---
     const refreshData = async () => {
         setLoading(true);
@@ -176,6 +207,68 @@ export default function RealisasiJobPage() {
             mp: "",
         });
         setOpenForm(true);
+    };
+
+    const loadSpkListForModal = async () => {
+        const cab = String(user?.user_cab || "").trim();
+        const liniAktif = String(
+            form.lini || (isAdmin ? lini : user?.user_bagian || "JAHIT"),
+        )
+            .trim()
+            .toUpperCase();
+
+        if (!cab) {
+            toast.error("Cabang user login tidak tersedia");
+            return;
+        }
+        if (!liniAktif) {
+            toast.warning("Pilih lini terlebih dahulu");
+            return;
+        }
+
+        setLoadingSpkList(true);
+        try {
+            const res = await getSpkTargets(cab, liniAktif);
+            if (!res?.ok) {
+                setSpkListSource([]);
+                toast.error(res?.message || "Gagal memuat data SPK");
+                return;
+            }
+
+            const mapped = (Array.isArray(res?.data) ? res.data : []).map(
+                (r) => ({
+                    nomor: String(r.nomor || "").toUpperCase(),
+                    nama: String(r.nama || ""),
+                    target: Number(r.target || 0),
+                    tanggal:
+                        r.tanggal || r.date_create || r.date_modified || null,
+                }),
+            );
+
+            setSpkListSource(sortByLatestTanggal(mapped));
+        } catch {
+            setSpkListSource([]);
+            toast.error("Gagal memuat data SPK");
+        } finally {
+            setLoadingSpkList(false);
+        }
+    };
+
+    const openSpkSearchModal = async () => {
+        setSpkKeyword("");
+        setOpenSpkSearch(true);
+        await loadSpkListForModal();
+    };
+
+    const selectSpkFromModal = (row) => {
+        setForm((p) => ({
+            ...p,
+            spk: String(row?.nomor || "").toUpperCase(),
+            nama: String(row?.nama || ""),
+            target: String(row?.target || ""),
+        }));
+        setOpenSpkSearch(false);
+        toast.success("SPK dipilih dari daftar");
     };
 
     const onCariSpk = async () => {
@@ -390,7 +483,7 @@ export default function RealisasiJobPage() {
                 )}
                 {!isAdmin && (
                     <div style={styles.filterGroup}>
-                        <label style={styles.label}>Info Kelompok</label>
+                        <label style={styles.label}>Kelompok</label>
                         <input
                             style={{
                                 ...styles.input,
@@ -628,6 +721,14 @@ export default function RealisasiJobPage() {
                                         />
                                         <button
                                             type="button"
+                                            style={styles.btnCariSpkModal}
+                                            onClick={openSpkSearchModal}
+                                            title="Cari SPK berdasarkan nomor atau nama"
+                                        >
+                                            Cari SPK
+                                        </button>
+                                        <button
+                                            type="button"
                                             style={styles.btnCariSpk}
                                             onClick={onCariSpk}
                                             disabled={searchingSpk || !form.spk}
@@ -730,6 +831,117 @@ export default function RealisasiJobPage() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {openForm && openSpkSearch && (
+                <div
+                    style={styles.modalOverlayInner}
+                    onClick={() => setOpenSpkSearch(false)}
+                >
+                    <div
+                        style={styles.modalSearch}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div style={styles.modalHeader}>
+                            <div>
+                                <div style={styles.modalTitle}>Cari SPK</div>
+                                <div style={styles.modalSub}>
+                                    Cari berdasarkan nomor atau nama SPK
+                                </div>
+                            </div>
+                            <button
+                                style={styles.btnCloseModal}
+                                onClick={() => setOpenSpkSearch(false)}
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <input
+                            style={styles.input}
+                            placeholder="Cari..."
+                            value={spkKeyword}
+                            onChange={(e) =>
+                                setSpkKeyword(e.target.value.toUpperCase())
+                            }
+                        />
+
+                        <div style={styles.searchTableWrap}>
+                            <table style={styles.searchTable}>
+                                <thead>
+                                    <tr>
+                                        <th style={styles.searchTh}>Nomor</th>
+                                        <th style={styles.searchTh}>Nama</th>
+                                        <th style={styles.searchThCenter}>
+                                            Target/Jam
+                                        </th>
+                                        <th style={styles.searchThCenter}>
+                                            Aksi
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {loadingSpkList ? (
+                                        <tr>
+                                            <td
+                                                style={styles.searchTdEmpty}
+                                                colSpan={4}
+                                            >
+                                                Memuat data SPK...
+                                            </td>
+                                        </tr>
+                                    ) : spkListFiltered.length === 0 ? (
+                                        <tr>
+                                            <td
+                                                style={styles.searchTdEmpty}
+                                                colSpan={4}
+                                            >
+                                                Data SPK tidak ditemukan
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        spkListFiltered.map((row, idx) => (
+                                            <tr key={`${row.nomor}-${idx}`}>
+                                                <td style={styles.searchTdNo}>
+                                                    {row.nomor}
+                                                </td>
+                                                <td style={styles.searchTd}>
+                                                    {row.nama || "-"}
+                                                </td>
+                                                <td
+                                                    style={
+                                                        styles.searchTdCenter
+                                                    }
+                                                >
+                                                    {row.target}
+                                                </td>
+                                                <td
+                                                    style={
+                                                        styles.searchTdCenter
+                                                    }
+                                                >
+                                                    <button
+                                                        type="button"
+                                                        style={
+                                                            styles.btnPilihSpk
+                                                        }
+                                                        onClick={() =>
+                                                            selectSpkFromModal(
+                                                                row,
+                                                            )
+                                                        }
+                                                    >
+                                                        Pilih
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             )}
@@ -997,6 +1209,16 @@ const styles = {
         gap: "4px", // Tombol dan input lebih rapat
         alignItems: "stretch",
     },
+    btnCariSpkModal: {
+        padding: "0 12px",
+        borderRadius: "8px",
+        border: "1px solid #C7D2FE",
+        background: "#e9a144",
+        color: "#303031",
+        fontWeight: 700,
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+    },
     btnCariSpk: {
         width: "50px",
         borderRadius: "8px",
@@ -1014,5 +1236,86 @@ const styles = {
         fontSize: "12px",
         fontWeight: 600,
         fontStyle: "italic",
+    },
+    modalOverlayInner: {
+        position: "fixed",
+        inset: 0,
+        background: "rgba(15, 23, 42, 0.4)",
+        display: "grid",
+        placeItems: "center",
+        zIndex: 1010,
+    },
+    modalSearch: {
+        width: "min(980px, 96vw)",
+        maxHeight: "88vh",
+        background: "#fff",
+        borderRadius: "16px",
+        padding: "18px",
+        boxShadow: "0 20px 35px rgba(0,0,0,0.2)",
+        overflow: "auto",
+        border: "1px solid #E5E7EB",
+    },
+    searchTableWrap: {
+        marginTop: 12,
+        border: "1px solid #E5E7EB",
+        borderRadius: 10,
+        overflow: "hidden",
+    },
+    searchTable: {
+        width: "100%",
+        borderCollapse: "collapse",
+        tableLayout: "fixed",
+    },
+    searchTh: {
+        textAlign: "left",
+        padding: "10px 12px",
+        background: "#F9FAFB",
+        borderBottom: "1px solid #E5E7EB",
+        fontSize: 11,
+        textTransform: "uppercase",
+        color: "#4B5563",
+    },
+    searchThCenter: {
+        textAlign: "center",
+        padding: "10px 12px",
+        background: "#F9FAFB",
+        borderBottom: "1px solid #E5E7EB",
+        fontSize: 11,
+        textTransform: "uppercase",
+        color: "#4B5563",
+    },
+    searchTd: {
+        padding: "10px 12px",
+        borderBottom: "1px solid #F3F4F6",
+        fontSize: 13,
+        color: "#111827",
+    },
+    searchTdNo: {
+        padding: "10px 12px",
+        borderBottom: "1px solid #F3F4F6",
+        fontSize: 13,
+        color: "#0F172A",
+        fontWeight: 700,
+    },
+    searchTdCenter: {
+        padding: "10px 12px",
+        borderBottom: "1px solid #F3F4F6",
+        textAlign: "center",
+        fontSize: 13,
+    },
+    searchTdEmpty: {
+        padding: "20px 12px",
+        textAlign: "center",
+        color: "#6B7280",
+        fontSize: 13,
+    },
+    btnPilihSpk: {
+        padding: "6px 10px",
+        borderRadius: 8,
+        border: "1px solid #D1D5DB",
+        background: "#FFFFFF",
+        color: "#111827",
+        fontWeight: 700,
+        cursor: "pointer",
     },
 };
