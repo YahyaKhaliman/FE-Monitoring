@@ -123,8 +123,6 @@ export default function MonitoringJobPage() {
     useEffect(() => {
         if (!userCab || !lini || !kelompok || !tanggal) return;
         loadMonitoring();
-        const t = setInterval(loadMonitoring, 20000);
-        return () => clearInterval(t);
     }, [tanggal, lini, kelompok]);
 
     function getSpkCount(spkText) {
@@ -154,7 +152,7 @@ export default function MonitoringJobPage() {
                     </button>
                     <div>
                         <div style={styles.title}>
-                            DASHBOARD MONITORING PRODUKSI
+                            DASHBOARD MONITORING PRODUKSI HARIAN
                         </div>
                         <div style={styles.sub}>
                             Cabang: {userCab || "-"} •{" "}
@@ -330,10 +328,6 @@ export default function MonitoringJobPage() {
                         )}
                     </tbody>
                 </table>
-            </div>
-
-            <div style={styles.footer}>
-                Auto-Refresh Active: Data diperbarui otomatis setiap 20 detik
             </div>
         </div>
     );
@@ -547,14 +541,5 @@ const styles = {
         padding: "10px 12px",
         fontSize: "13px",
         fontWeight: 600,
-    },
-    footer: {
-        marginTop: "20px",
-        textAlign: "center",
-        fontSize: "11px",
-        color: "#9CA3AF",
-        fontWeight: 600,
-        textTransform: "uppercase",
-        letterSpacing: "0.1em",
     },
 };

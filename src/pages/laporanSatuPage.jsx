@@ -179,6 +179,13 @@ export default function LaporanPage() {
         load();
     }, [load]);
 
+    useEffect(() => {
+        const t = setInterval(() => {
+            load();
+        }, 600000);
+        return () => clearInterval(t);
+    }, [load]);
+
     const filteredPerSpk = useMemo(() => {
         const lowSearch = searchTerm.toLowerCase();
         return perSpk.filter(
@@ -823,6 +830,9 @@ export default function LaporanPage() {
                     </table>
                 </div>
             </div>
+            <div style={styles.footer}>
+                Auto-Refresh Active: Data diperbarui otomatis setiap 10 menit
+            </div>
         </div>
     );
 }
@@ -1238,5 +1248,14 @@ const styles = {
         display: "flex",
         alignItems: "center",
         fontFamily: "'Inter', sans-serif",
+    },
+    footer: {
+        marginTop: "20px",
+        textAlign: "center",
+        fontSize: "11px",
+        color: "#9CA3AF",
+        fontWeight: 600,
+        textTransform: "uppercase",
+        letterSpacing: "0.1em",
     },
 };
