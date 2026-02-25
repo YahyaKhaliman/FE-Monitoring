@@ -22,12 +22,14 @@ function formatDateDDMMYYYY(dateStr) {
 export default function ManPowerPage() {
     const navigate = useNavigate();
     const { user } = useAuth();
+    const userBagian = String(user?.user_bagian || "")
+        .trim()
+        .toUpperCase();
+    const userKelompok = String(user?.user_kelompok || "").trim();
 
-    const isAdmin = ["ADMIN", "IT"].includes(
-        (user?.user_bagian || "").toUpperCase(),
-    );
-    const canInput =
-        isAdmin || (user?.user_bagian || "").toUpperCase() === "JAHIT";
+    const isAdmin = ["ADMIN", "IT"].includes(userBagian);
+    const isJahit = userBagian === "JAHIT";
+    const canInput = isAdmin || isJahit;
     const today = new Date().toISOString().slice(0, 10);
 
     // --- States ---
@@ -55,6 +57,21 @@ export default function ManPowerPage() {
         "Line J",
         "Line K",
     ];
+
+    const isSameKelompok = (a, b) =>
+        String(a || "")
+            .trim()
+            .toUpperCase() ===
+        String(b || "")
+            .trim()
+            .toUpperCase();
+
+    const canManageRow = (kelompokValue) => {
+        if (isAdmin) return true;
+        if (!isJahit) return false;
+        return isSameKelompok(kelompokValue, userKelompok);
+    };
+
     const kelompokSelectOptions = useMemo(() => {
         const normalized = (v) =>
             String(v || "")
@@ -65,12 +82,19 @@ export default function ManPowerPage() {
             (opt) => normalized(opt) === current,
         );
 
+        if (!isAdmin && isJahit && userKelompok) {
+            const own = kelompokOptions.find((opt) =>
+                isSameKelompok(opt, userKelompok),
+            );
+            return [own || userKelompok];
+        }
+
         if (editMode && formKelompok && !exists) {
             return [formKelompok, ...kelompokOptions];
         }
 
         return kelompokOptions;
-    }, [editMode, formKelompok]);
+    }, [editMode, formKelompok, isAdmin, isJahit, userKelompok]);
 
     const userLabel = useMemo(() => {
         if (!user) return "";
@@ -85,12 +109,24 @@ export default function ManPowerPage() {
                 lini,
                 tanggal,
                 cab: user?.user_cab,
+                kelompok:
+                    !isAdmin && isJahit && userKelompok
+                        ? userKelompok
+                        : undefined,
             });
             if (!res.ok) {
                 setRows([]);
                 throw new Error(res.message || "Gagal memuat data");
             }
-            setRows(res.data || []);
+            const serverRows = Array.isArray(res.data) ? res.data : [];
+            const filteredRows =
+                !isAdmin && isJahit && userKelompok
+                    ? serverRows.filter((r) =>
+                          isSameKelompok(r.kelompok, userKelompok),
+                      )
+                    : serverRows;
+
+            setRows(filteredRows);
             return res;
         } finally {
             setLoading(false);
@@ -104,12 +140,17 @@ export default function ManPowerPage() {
     // --- Form Logic ---
     const openAdd = () => {
         setEditMode(false);
-        setFormKelompok("");
+        setFormKelompok(!isAdmin && isJahit ? userKelompok : "");
         setMp("");
         setOpenForm(true);
     };
 
     const openEdit = (r) => {
+        if (!canManageRow(r.kelompok)) {
+            toast.warning("Anda hanya dapat mengelola kelompok sendiri");
+            return;
+        }
+
         const normalized = (v) =>
             String(v || "")
                 .trim()
@@ -131,11 +172,17 @@ export default function ManPowerPage() {
 
         setLoading(true);
         try {
+            const finalKelompok = isAdmin
+                ? formKelompok
+                : isJahit
+                  ? userKelompok
+                  : formKelompok;
+
             const payload = {
                 tanggal,
                 cab: user?.user_cab,
                 lini,
-                kelompok: formKelompok,
+                kelompok: finalKelompok,
                 mp: Number(mp || 0),
                 user: user?.user_kode,
             };
@@ -158,6 +205,11 @@ export default function ManPowerPage() {
     };
 
     const onDelete = async (r) => {
+        if (!canManageRow(r.kelompok)) {
+            toast.warning("Anda hanya dapat menghapus kelompok sendiri");
+            return;
+        }
+
         if (!window.confirm(`Hapus Man Power kelompok ${r.kelompok}?`)) return;
         try {
             const res = await deleteManPower({
@@ -252,7 +304,7 @@ export default function ManPowerPage() {
                                 <td style={styles.td}>{r.tanggal}</td>
                                 <td style={styles.tdBold}>{r.kelompok}</td>
                                 <td style={styles.tdTarget}>{r.mp}</td>
-                                {canInput && (
+                                {canInput && canManageRow(r.kelompok) && (
                                     <td style={styles.tdCenter}>
                                         <button
                                             style={styles.btnEdit}
@@ -301,14 +353,33 @@ export default function ManPowerPage() {
                                 </label>
                                 <select
                                     style={styles.input}
-                                    value={formKelompok}
+                                    value={formKelompok ?? ""}
                                     onChange={(e) =>
                                         setFormKelompok(e.target.value)
                                     }
+                                    disabled={!isAdmin && isJahit}
                                 >
-                                    <option value="">Pilih Kelompok</option>
-                                    {kelompokSelectOptions.map((opt) => (
-                                        <option key={opt} value={opt}>
+                                    <option value="" disabled>
+                                        Pilih kelompok produksi
+                                    </option>
+
+                                    {userKelompok &&
+                                        !kelompokSelectOptions.some((opt) =>
+                                            isSameKelompok(opt, userKelompok),
+                                        ) && (
+                                            <option value={userKelompok}>
+                                                {userKelompok}
+                                            </option>
+                                        )}
+
+                                    {(Array.isArray(kelompokSelectOptions)
+                                        ? kelompokSelectOptions
+                                        : []
+                                    ).map((opt) => (
+                                        <option
+                                            key={`kelompok-${opt}`}
+                                            value={opt}
+                                        >
                                             {opt}
                                         </option>
                                     ))}

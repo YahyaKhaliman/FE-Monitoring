@@ -7,8 +7,6 @@ export default function MenuPage() {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
 
-    const isAdmin = ["ADMIN", "IT"].includes((user?.user_bagian || "").toUpperCase());
-
     const userLabel = useMemo(() => {
         if (!user) return "";
         const { user_nama: nama, user_bagian: bagian } = user;
@@ -18,32 +16,71 @@ export default function MenuPage() {
     function handleLogout() {
         toast.dismiss();
         toast.info(
-            <div style={{
-                fontFamily: "'Readex Pro', sans-serif",
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', width: '100%'
-            }}>
-                <p style={{ margin: '0 0 12px 0', fontWeight: 600, color: '#111827', fontSize: '14px' }}>
+            <div
+                style={{
+                    fontFamily: "'Readex Pro', sans-serif",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    textAlign: "center",
+                    width: "100%",
+                }}
+            >
+                <p
+                    style={{
+                        margin: "0 0 12px 0",
+                        fontWeight: 600,
+                        color: "#111827",
+                        fontSize: "14px",
+                    }}
+                >
                     Apakah Anda yakin ingin keluar?
                 </p>
-                <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                <div
+                    style={{
+                        display: "flex",
+                        gap: "10px",
+                        justifyContent: "center",
+                    }}
+                >
                     <button
                         onClick={() => {
-                            if(logout) logout();
+                            if (logout) logout();
                             navigate("/login", { replace: true });
                             toast.dismiss();
                         }}
                         style={{
-                            background: '#B34E33', color: '#fff', border: 'none', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '12px', transition: 'opacity 0.2s'
+                            background: "#B34E33",
+                            color: "#fff",
+                            border: "none",
+                            padding: "8px 20px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontWeight: 700,
+                            fontSize: "12px",
+                            transition: "opacity 0.2s",
                         }}
-                        onMouseOver={e => e.currentTarget.style.opacity = '0.8'}
-                        onMouseOut={e => e.currentTarget.style.opacity = '1'}
+                        onMouseOver={(e) =>
+                            (e.currentTarget.style.opacity = "0.8")
+                        }
+                        onMouseOut={(e) =>
+                            (e.currentTarget.style.opacity = "1")
+                        }
                     >
                         Ya, Keluar
                     </button>
                     <button
                         onClick={() => toast.dismiss()}
                         style={{
-                            background: '#E5E7EB', color: '#374151', border: 'none', padding: '8px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, fontSize: '12px'
+                            background: "#E5E7EB",
+                            color: "#374151",
+                            border: "none",
+                            padding: "8px 20px",
+                            borderRadius: "8px",
+                            cursor: "pointer",
+                            fontWeight: 700,
+                            fontSize: "12px",
                         }}
                     >
                         Batal
@@ -57,21 +94,50 @@ export default function MenuPage() {
                 draggable: false,
                 icon: false,
                 closeButton: false,
-                style: { borderRadius: '12px', padding: '16px' }
-            }
+                style: { borderRadius: "12px", padding: "16px" },
+            },
         );
     }
 
     const menus = [
-        ...(isAdmin
-            ? [
-                { key: "spk", title: "SPK Target", desc: "Input target produksi harian", path: "/spk-target", icon: "📋", state: { lini: "JAHIT" } },
-                { key: "manpower", title: "Man Power", desc: "Manajemen tenaga kerja", path: "/manpower", icon: "👥" },
-            ]
-            : []),
-        { key: "realisasi", title: "Realisasi Job", desc: "Input hasil produksi lapangan", path: "/realisasi", icon: "⚙️" },
-        { key: "monitoring", title: "Monitoring Job", desc: "Pantau capaian produksi", path: "/monitoring", icon: "📊" },
-        { key: "change-password", title: "Ganti Password", desc: "Keamanan akun user", path: "/change-password", icon: "🔐" },
+        {
+            key: "spk",
+            title: "SPK Target",
+            desc: "Input target produksi harian",
+            path: "/spk-target",
+            icon: "📋",
+            state: { lini: "JAHIT" },
+        },
+        {
+            key: "manpower",
+            title: "Man Power",
+            desc: "Manajemen tenaga kerja",
+            path: "/manpower",
+            icon: "👥",
+        },
+        {
+            key: "realisasi",
+            title: "Realisasi Job",
+            desc: "Input hasil produksi lapangan",
+            path: "/realisasi",
+            icon: "⚙️",
+        },
+
+        {
+            key: "monitoring",
+            title: "Monitoring Job",
+            desc: "Pantau capaian produksi",
+            path: "/monitoring",
+            icon: "📊",
+        },
+
+        {
+            key: "change-password",
+            title: "Ganti Password",
+            desc: "Keamanan akun user",
+            path: "/change-password",
+            icon: "🔐",
+        },
     ];
 
     return (
@@ -90,7 +156,12 @@ export default function MenuPage() {
                 {menus.map((m) => (
                     <button
                         key={m.key}
-                        onClick={() => navigate(m.path, m.state ? { state: m.state } : undefined)}
+                        onClick={() =>
+                            navigate(
+                                m.path,
+                                m.state ? { state: m.state } : undefined,
+                            )
+                        }
                         style={styles.card}
                         type="button"
                     >
@@ -113,7 +184,7 @@ const styles = {
         padding: "40px 20px",
         fontFamily: "'Readex Pro', sans-serif",
         maxWidth: "1200px",
-        margin: "0 auto"
+        margin: "0 auto",
     },
     header: {
         background: "#ffffff",
@@ -124,7 +195,7 @@ const styles = {
         justifyContent: "space-between",
         alignItems: "center",
         boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-        marginBottom: 32
+        marginBottom: 32,
     },
     title: { fontSize: 24, fontWeight: 800, color: "#111827" },
     sub: { marginTop: 4, fontSize: 13, color: "#6B7280", fontWeight: 500 },
@@ -138,7 +209,7 @@ const styles = {
         color: "#374151",
         fontWeight: 700,
         cursor: "pointer",
-        transition: "all 0.2s"
+        transition: "all 0.2s",
     },
 
     grid: {
@@ -157,7 +228,7 @@ const styles = {
         alignItems: "center",
         gap: 20,
         transition: "transform 0.2s, border-color 0.2s",
-        outline: "none"
+        outline: "none",
     },
     iconBox: {
         fontSize: 28,
@@ -173,13 +244,29 @@ const styles = {
         fontSize: 16,
         fontWeight: 800,
         color: "#111827",
-        fontFamily: "'Inter', sans-serif"
+        fontFamily: "'Inter', sans-serif",
     },
     cardDesc: { marginTop: 4, fontSize: 12, color: "#6B7280", fontWeight: 500 },
 
     // Toast Confirmation Styles
-    toastContainer: { textAlign: 'center' },
-    toastText: { fontWeight: 600, color: '#111827', marginBottom: 12 },
-    btnToastYa: { background: '#B34E33', color: '#fff', border: 'none', padding: '6px 15px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 },
-    btnToastBatal: { background: '#E5E7EB', color: '#374151', border: 'none', padding: '6px 15px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700 },
+    toastContainer: { textAlign: "center" },
+    toastText: { fontWeight: 600, color: "#111827", marginBottom: 12 },
+    btnToastYa: {
+        background: "#B34E33",
+        color: "#fff",
+        border: "none",
+        padding: "6px 15px",
+        borderRadius: "6px",
+        cursor: "pointer",
+        fontWeight: 700,
+    },
+    btnToastBatal: {
+        background: "#E5E7EB",
+        color: "#374151",
+        border: "none",
+        padding: "6px 15px",
+        borderRadius: "6px",
+        cursor: "pointer",
+        fontWeight: 700,
+    },
 };
