@@ -17,6 +17,7 @@ import {
     ResponsiveContainer,
     LabelList,
 } from "recharts";
+import { BiFontColor } from "react-icons/bi";
 
 function toISO(d) {
     return new Date(d).toISOString().slice(0, 10);
@@ -24,12 +25,12 @@ function toISO(d) {
 function formatDateIndo(dateStr) {
     if (!dateStr) return "";
     const [y, m, d] = dateStr.split("-");
-    return `${d}-${m}-${y}`;
+    return `${d}/${m}/${y}`;
 }
 function formatDateFE(dateStr) {
     const dateOnly = dateStr.split("T")[0];
     const [y, m, d] = dateOnly.split("-");
-    return `${d}-${m}-${y}`;
+    return `${d}/${m}/${y}`;
 }
 function formatNumber(n) {
     return Number(n || 0).toLocaleString("id-ID");
@@ -200,31 +201,6 @@ export default function LaporanPage() {
         );
     }, [perSpk, searchTerm]);
 
-    const insights = useMemo(() => {
-        const { total_target, total_realisasi, capaian } = summary;
-        let capaianMsg = "";
-        let color = "#B34E33";
-
-        if (capaian >= 100) {
-            capaianMsg = `Luar biasa! Target telah tercapai, presentase sebesar ${formatPercent(capaian)}.`;
-            color = "#059669";
-        } else if (capaian >= 80) {
-            capaianMsg = `Produksi berjalan stabil di angka presentase ${formatPercent(capaian)}.`;
-            color = "#B34E33";
-        } else {
-            capaianMsg = `Perhatian: Produksi saat ini masih rendah di presentase (${formatPercent(capaian)}).`;
-            color = "#DC2626";
-        }
-
-        const sisa = total_target - total_realisasi;
-        const sisaMsg =
-            sisa > 0
-                ? `Masih Kurang ${formatNumber(sisa)} unit lagi untuk mencapai target.`
-                : "Target harian telah terpenuhi sepenuhnya.";
-
-        return { capaianMsg, sisaMsg, color };
-    }, [summary]);
-
     const { logout } = useAuth();
 
     const handleLogout = () => {
@@ -320,7 +296,7 @@ export default function LaporanPage() {
                 <div>
                     <h1
                         style={styles.topTitle}
-                    >{`Monitoring Produksi ${formatDateIndo(tglAwal)} s/d ${formatDateIndo(tglAkhir)}`}</h1>
+                    >{`Monitoring Produksi ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h1>
                 </div>
                 <div style={styles.headerActions}>
                     <button style={styles.btnSecondary} onClick={handleLogout}>
@@ -341,19 +317,19 @@ export default function LaporanPage() {
                 <StatCard
                     title="Total Target"
                     value={formatNumber(summary.total_target)}
-                    desc={`Periode ${formatDateIndo(tglAwal)} s/d ${formatDateIndo(tglAkhir)}`}
+                    desc={`Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}
                     color="#44423e"
                 />
                 <StatCard
                     title="Total Realisasi"
                     value={formatNumber(summary.total_realisasi)}
-                    desc={`Periode ${formatDateIndo(tglAwal)} s/d ${formatDateIndo(tglAkhir)}`}
+                    desc={`Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}
                     color="#B34E33"
                 />
                 <StatCard
                     title="Efektivitas"
                     value={formatPercent(summary.capaian)}
-                    desc={`Periode ${formatDateIndo(tglAwal)} s/d ${formatDateIndo(tglAkhir)}`}
+                    desc={`Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}
                     color="#0F766E"
                 />
                 <StatCard
@@ -364,34 +340,74 @@ export default function LaporanPage() {
                 />
             </div>
 
-            {/* INSIGHT BOX */}
-            <div
-                style={{
-                    ...styles.insightBox,
-                    borderLeftColor: insights.color,
-                }}
-            >
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "15px",
+            {/* FILTER & SEARCH */}
+            <div style={styles.filterBar}>
+                <div style={styles.filterGroup}>
+                    <label style={styles.label}>Pencarian SPK / Nama</label>
+                    <div
+                        style={{
+                            position: "relative",
+                            display: "flex",
+                            alignItems: "center",
+                        }}
+                    >
+                        <input
+                            style={styles.inputSearch}
+                            placeholder="Cari SPK atau Nama..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        {searchTerm && (
+                            <button
+                                type="button"
+                                onClick={() => setSearchTerm("")}
+                                style={styles.clearBtn}
+                            >
+                                ×
+                            </button>
+                        )}
+                    </div>
+                </div>
+                <div style={styles.filterGroup}>
+                    <label style={styles.label}>Periode</label>
+                    <div style={{ display: "flex", gap: 10 }}>
+                        <SimpleDatePicker
+                            value={tglAwal}
+                            onChange={setTglAwal}
+                            maxDate={tglAkhir}
+                        />
+                        <SimpleDatePicker
+                            value={tglAkhir}
+                            onChange={setTglAkhir}
+                            minDate={tglAwal}
+                        />
+                    </div>
+                </div>
+                <button
+                    style={styles.btnToday}
+                    onClick={() => {
+                        const n = toISO(new Date());
+                        setTglAwal(n);
+                        setTglAkhir(n);
                     }}
                 >
-                    <span style={{ fontSize: "24px" }}>💡</span>
-                    <div>
-                        <div
-                            style={{
-                                ...styles.insightTitle,
-                                color: insights.color,
-                            }}
-                        >
-                            Analisis Produksi Otomatis
-                        </div>
-                        <div style={styles.insightText}>
-                            {insights.capaianMsg} {insights.sisaMsg}
-                        </div>
-                    </div>
+                    Hari Ini
+                </button>
+                <div style={styles.filterGroup}>
+                    <label style={styles.label}>Line</label>
+                    <select
+                        style={styles.select}
+                        value={kelompok}
+                        onChange={(e) => setKelompok(e.target.value)}
+                        disabled={!canSelectKelompok}
+                    >
+                        <option value="ALL">ALL</option>
+                        {kelompokOptions.map((item) => (
+                            <option key={item.kelompok} value={item.kelompok}>
+                                {item.kelompok}
+                            </option>
+                        ))}
+                    </select>
                 </div>
             </div>
 
@@ -400,7 +416,7 @@ export default function LaporanPage() {
                 <div style={styles.panel}>
                     <h3
                         style={styles.panelTitle}
-                    >{`Grafik Target vs Realisasi Keseluruhan ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h3>
+                    >{`Grafik Capaian (${kelompok === "ALL" ? "Keseluruhan" : kelompok}) ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h3>
                     <div
                         style={{
                             width: "100%",
@@ -498,7 +514,10 @@ export default function LaporanPage() {
                 </div>
 
                 <div style={styles.panel}>
-                    <h3 style={styles.panelTitle}>Presentase Capaian per Line</h3>
+                    <h3 style={styles.panelTitle}>
+                        Presentase Capaian {formatDateIndo(tglAwal)} -{" "}
+                        {formatDateIndo(tglAkhir)}
+                    </h3>
                     <div
                         style={{
                             width: "100%",
@@ -509,7 +528,12 @@ export default function LaporanPage() {
                             <BarChart
                                 data={perLine}
                                 layout="vertical"
-                                margin={{ top: 8, right: 20, left: 10, bottom: 8 }}
+                                margin={{
+                                    top: 8,
+                                    right: 20,
+                                    left: 10,
+                                    bottom: 8,
+                                }}
                             >
                                 <CartesianGrid
                                     strokeDasharray="3 3"
@@ -534,16 +558,51 @@ export default function LaporanPage() {
                                 />
                                 <Tooltip
                                     contentStyle={styles.tooltip}
-                                    formatter={(value, name, props) => {
-                                        if (name === "Capaian") {
-                                            return [
-                                                formatPercent(value),
-                                                `Capaian (${props?.payload?.line || "-"})`,
-                                            ];
-                                        }
-                                        return [value, name];
+                                    content={({ active, payload, label }) => {
+                                        if (!active || !payload?.length)
+                                            return null;
+                                        const row = payload[0]?.payload || {};
+
+                                        return (
+                                            <div style={styles.tooltip}>
+                                                <div
+                                                    style={{
+                                                        fontWeight: 800,
+                                                        marginBottom: 6,
+                                                        color: "#44453e",
+                                                    }}
+                                                >
+                                                    Kelompok: {label || "-"}
+                                                </div>
+                                                <div
+                                                    style={{ color: "#e8d8c3" }}
+                                                >
+                                                    Target:{" "}
+                                                    {formatNumber(row.target)}
+                                                </div>
+                                                <div
+                                                    style={{ color: "#b34e33" }}
+                                                >
+                                                    Realisasi:{" "}
+                                                    {formatNumber(
+                                                        row.realisasi,
+                                                    )}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontWeight: 700,
+                                                        color: "#44453e",
+                                                    }}
+                                                >
+                                                    Capaian:{" "}
+                                                    {formatPercent(row.persen)}
+                                                </div>
+                                            </div>
+                                        );
                                     }}
-                                    labelFormatter={(label) => `Kelompok: ${label}`}
+                                    labelFormatter={(label) =>
+                                        `Kelompok: ${label}`
+                                    }
                                 />
                                 <Bar
                                     dataKey="persen"
@@ -584,77 +643,6 @@ export default function LaporanPage() {
                 </div>
             </div>
 
-            {/* FILTER & SEARCH */}
-            <div style={styles.filterBar}>
-                <div style={styles.filterGroup}>
-                    <label style={styles.label}>Pencarian SPK / Nama</label>
-                    <div
-                        style={{
-                            position: "relative",
-                            display: "flex",
-                            alignItems: "center",
-                        }}
-                    >
-                        <input
-                            style={styles.inputSearch}
-                            placeholder="Cari SPK atau Nama..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        {searchTerm && (
-                            <button
-                                type="button"
-                                onClick={() => setSearchTerm("")}
-                                style={styles.clearBtn}
-                            >
-                                ×
-                            </button>
-                        )}
-                    </div>
-                </div>
-                <div style={styles.filterGroup}>
-                    <label style={styles.label}>Periode</label>
-                    <div style={{ display: "flex", gap: 10 }}>
-                        <SimpleDatePicker
-                            value={tglAwal}
-                            onChange={setTglAwal}
-                            maxDate={tglAkhir}
-                        />
-                        <SimpleDatePicker
-                            value={tglAkhir}
-                            onChange={setTglAkhir}
-                            minDate={tglAwal}
-                        />
-                    </div>
-                </div>
-                <button
-                    style={styles.btnToday}
-                    onClick={() => {
-                        const n = toISO(new Date());
-                        setTglAwal(n);
-                        setTglAkhir(n);
-                    }}
-                >
-                    Hari Ini
-                </button>
-                <div style={styles.filterGroup}>
-                    <label style={styles.label}>Kelompok</label>
-                    <select
-                        style={styles.select}
-                        value={kelompok}
-                        onChange={(e) => setKelompok(e.target.value)}
-                        disabled={!canSelectKelompok}
-                    >
-                        <option value="ALL">ALL</option>
-                        {kelompokOptions.map((item) => (
-                            <option key={item.kelompok} value={item.kelompok}>
-                                {item.kelompok}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            </div>
-
             {msg && <div style={styles.errorAlert}>{msg}</div>}
 
             {/* DATA TABLE */}
@@ -662,7 +650,7 @@ export default function LaporanPage() {
                 <div style={styles.tableHeader}>
                     <h3
                         style={styles.panelTitleTable}
-                    >{`Detail Produksi Periode ${formatDateIndo(tglAwal)} s/d ${formatDateIndo(tglAkhir)}`}</h3>
+                    >{`Detail Produksi (${kelompok === "ALL" ? "Keseluruhan" : kelompok}) Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h3>
                     <span style={styles.tableSubtitle}>
                         Menampilkan {filteredPerSpk.length} Data
                     </span>
@@ -693,10 +681,9 @@ export default function LaporanPage() {
                                     Status
                                 </th>
                             </tr>
-                            {/* Baris 2: Gabungan Tanggal (Sticky dengan offset top) */}
                             <tr>
                                 <th colSpan={2} style={styles.thSubDate}>
-                                    {formatDateIndo(tglAwal)} s/d{" "}
+                                    {formatDateIndo(tglAwal)} -{" "}
                                     {formatDateIndo(tglAkhir)}
                                 </th>
                             </tr>
@@ -1236,6 +1223,8 @@ const styles = {
         fontWeight: 700,
     },
     tooltip: {
+        background: "#F9FAFB",
+        padding: "7px",
         borderRadius: "12px",
         border: "1px solid #E5E7EB",
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
