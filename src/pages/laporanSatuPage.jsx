@@ -15,9 +15,6 @@ import {
     Tooltip,
     Legend,
     ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
     LabelList,
 } from "recharts";
 
@@ -74,6 +71,7 @@ export default function LaporanPage() {
         total_spk: 0,
     });
     const [perTanggal, setPerTanggal] = useState([]);
+    const [perLine, setPerLine] = useState([]);
     const [perSpk, setPerSpk] = useState([]);
     const [viewportWidth, setViewportWidth] = useState(() =>
         typeof window !== "undefined" ? window.innerWidth : 1280,
@@ -87,10 +85,8 @@ export default function LaporanPage() {
     const isMobile = viewportWidth <= 768;
     const isTablet = viewportWidth > 768 && viewportWidth <= 1024;
     const barChartHeight = isMobile ? 240 : isTablet ? 280 : 320;
-    const pieChartHeight = isMobile ? 240 : 300;
+    const lineChartHeight = isMobile ? 260 : 320;
     const showBarLabels = !isMobile;
-    const pieInnerRadius = isMobile ? 50 : 70;
-    const pieOuterRadius = isMobile ? 72 : 95;
 
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -150,6 +146,15 @@ export default function LaporanPage() {
                     name: formatDateIndo(r.tanggal),
                     target: r.target,
                     realisasi: r.realisasi,
+                })),
+            );
+
+            setPerLine(
+                (res.by_per_line || []).map((r) => ({
+                    line: r.line,
+                    persen: Number(r.persen || 0),
+                    target: Number(r.target || 0),
+                    realisasi: Number(r.realisasi || 0),
                 })),
             );
 
@@ -219,15 +224,6 @@ export default function LaporanPage() {
 
         return { capaianMsg, sisaMsg, color };
     }, [summary]);
-
-    const pieData = [
-        { name: "Realisasi", value: summary.total_realisasi, color: "#B34E33" },
-        {
-            name: "Kurang",
-            value: Math.max(0, summary.total_target - summary.total_realisasi),
-            color: "#E5E7EB",
-        },
-    ];
 
     const { logout } = useAuth();
 
@@ -502,55 +498,88 @@ export default function LaporanPage() {
                 </div>
 
                 <div style={styles.panel}>
-                    <h3 style={styles.panelTitle}>Rasio Capaian</h3>
+                    <h3 style={styles.panelTitle}>Presentase Capaian per Line</h3>
                     <div
                         style={{
                             width: "100%",
-                            height: pieChartHeight,
-                            position: "relative",
+                            height: lineChartHeight,
                         }}
                     >
                         <ResponsiveContainer>
-                            <PieChart>
-                                <Pie
-                                    data={pieData}
-                                    innerRadius={pieInnerRadius}
-                                    outerRadius={pieOuterRadius}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                    stroke="none"
+                            <BarChart
+                                data={perLine}
+                                layout="vertical"
+                                margin={{ top: 8, right: 20, left: 10, bottom: 8 }}
+                            >
+                                <CartesianGrid
+                                    strokeDasharray="3 3"
+                                    horizontal={false}
+                                    stroke="#E5E7EB"
+                                />
+                                <XAxis
+                                    type="number"
+                                    domain={[0, 100]}
+                                    tickFormatter={(v) => `${v}%`}
+                                    fontSize={isMobile ? 10 : 11}
+                                    stroke="#6B7280"
+                                    fontWeight={600}
+                                />
+                                <YAxis
+                                    type="category"
+                                    dataKey="line"
+                                    width={isMobile ? 70 : 100}
+                                    fontSize={isMobile ? 10 : 12}
+                                    stroke="#374151"
+                                    fontWeight={700}
+                                />
+                                <Tooltip
+                                    contentStyle={styles.tooltip}
+                                    formatter={(value, name, props) => {
+                                        if (name === "Capaian") {
+                                            return [
+                                                formatPercent(value),
+                                                `Capaian (${props?.payload?.line || "-"})`,
+                                            ];
+                                        }
+                                        return [value, name];
+                                    }}
+                                    labelFormatter={(label) => `Kelompok: ${label}`}
+                                />
+                                <Bar
+                                    dataKey="persen"
+                                    name="Capaian"
+                                    fill="#B34E33"
+                                    radius={[0, 6, 6, 0]}
+                                    barSize={isMobile ? 16 : 22}
                                 >
-                                    {pieData.map((entry, index) => (
-                                        <Cell
-                                            key={`cell-${index}`}
-                                            fill={entry.color}
-                                        />
-                                    ))}
-                                </Pie>
-                                <Tooltip />
-                            </PieChart>
+                                    <LabelList
+                                        dataKey="persen"
+                                        position="right"
+                                        formatter={(v) => formatPercent(v)}
+                                        fontSize={10}
+                                        fontWeight={700}
+                                        fill="#374151"
+                                    />
+                                </Bar>
+                                <Bar
+                                    dataKey="target"
+                                    name="Target"
+                                    fill="#E8D8C3"
+                                    hide
+                                />
+                                <Bar
+                                    dataKey="realisasi"
+                                    name="Realisasi"
+                                    fill="#C96E4D"
+                                    hide
+                                />
+                            </BarChart>
                         </ResponsiveContainer>
-                        <div style={styles.pieCenterText}>
-                            <div
-                                style={{
-                                    fontSize: isMobile ? 22 : 28,
-                                    fontWeight: 800,
-                                    color: "#B34E33",
-                                    fontFamily: "'Inter', sans-serif",
-                                }}
-                            >
-                                {Math.round(summary.capaian)}%
+                        {perLine.length === 0 && (
+                            <div style={styles.emptyChartState}>
+                                Data line belum tersedia untuk periode ini
                             </div>
-                            <div
-                                style={{
-                                    fontSize: isMobile ? 9 : 10,
-                                    color: "#6B7280",
-                                    fontWeight: 800,
-                                }}
-                            >
-                                CAPAIAN
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -980,6 +1009,14 @@ const styles = {
         left: "50%",
         transform: "translate(-50%, -50%)",
         textAlign: "center",
+    },
+    emptyChartState: {
+        marginTop: "10px",
+        textAlign: "center",
+        fontSize: "12px",
+        color: "#9CA3AF",
+        fontStyle: "italic",
+        fontWeight: 600,
     },
 
     filterBar: {
