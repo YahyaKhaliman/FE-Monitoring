@@ -21,6 +21,9 @@ export default function MonitoringJobPage() {
         user?.cabang ||
         user?.cab_kode ||
         "";
+    const userBagian = String(user?.user_bagian || "").trim().toUpperCase();
+    const userKelompok = String(user?.user_kelompok || "").trim().toUpperCase();
+    const isAdmin = ["ADMIN", "IT"].includes(userBagian);
 
     const [tanggal, setTanggal] = useState(
         new Date().toISOString().slice(0, 10),
@@ -111,14 +114,26 @@ export default function MonitoringJobPage() {
                     ? resKelompok.data || []
                     : [];
                 setKelompokOptions(kelompokData);
-                // Default ke ALL agar bisa melihat gabungan semua kelompok
-                setKelompok("ALL");
+
+                const hasUserKelompok = kelompokData.some(
+                    (item) =>
+                        String(item.kelompok || "").trim().toUpperCase() ===
+                        userKelompok,
+                );
+
+                // Jika user bagian JAHIT, default-kan ke kelompok user login.
+                // Selain itu tetap ALL.
+                if (userBagian === "JAHIT" && userKelompok && hasUserKelompok) {
+                    setKelompok(userKelompok);
+                } else {
+                    setKelompok("ALL");
+                }
             } catch {
                 setKelompokOptions([]);
                 setKelompok("ALL");
             }
         })();
-    }, [userCab, lini]);
+    }, [userCab, lini, userBagian, userKelompok]);
 
     useEffect(() => {
         if (!userCab || !lini || !kelompok || !tanggal) return;
@@ -217,6 +232,7 @@ export default function MonitoringJobPage() {
                         style={styles.select}
                         value={kelompok}
                         onChange={(e) => setKelompok(e.target.value)}
+                        disabled={!isAdmin}
                     >
                         <option value="ALL">ALL</option>
                         {kelompokOptions.length === 0 && (

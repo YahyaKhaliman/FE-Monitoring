@@ -13,10 +13,28 @@ import LaporanPage from "../pages/laporanSatuPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import DalamPengembanganPage from "../pages/dalamPengembanganPage";
+import AksesCabangPage from "../pages/aksesCabangPage";
 
 function AuthRoute({ allow, children }) {
     const user = loadUser();
     if (!user) return <Navigate to="/login" replace />;
+
+    const userCab = String(
+        user?.user_cab ||
+            user?.cab ||
+            user?.user_cabang ||
+            user?.cabang ||
+            user?.cab_kode ||
+            "",
+    )
+        .trim()
+        .toUpperCase();
+
+    // Sistem monitoring ini khusus untuk cabang P04
+    if (userCab && userCab !== "P04") {
+        return <Navigate to="/akses-cabang" replace />;
+    }
+
     if (allow) {
         const role = (user.user_bagian || "").toUpperCase();
         if (!allow.includes(role)) {
@@ -39,6 +57,7 @@ export default function AppRoute() {
             <Routes>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="/akses-cabang" element={<AksesCabangPage />} />
                 <Route
                     path="/laporan"
                     element={
