@@ -340,34 +340,8 @@ export default function LaporanPage() {
                 />
             </div>
 
-            {/* FILTER & SEARCH */}
+            {/* FILTER */}
             <div style={styles.filterBar}>
-                <div style={styles.filterGroup}>
-                    <label style={styles.label}>Pencarian SPK / Nama</label>
-                    <div
-                        style={{
-                            position: "relative",
-                            display: "flex",
-                            alignItems: "center",
-                        }}
-                    >
-                        <input
-                            style={styles.inputSearch}
-                            placeholder="Cari SPK atau Nama..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        {searchTerm && (
-                            <button
-                                type="button"
-                                onClick={() => setSearchTerm("")}
-                                style={styles.clearBtn}
-                            >
-                                ×
-                            </button>
-                        )}
-                    </div>
-                </div>
                 <div style={styles.filterGroup}>
                     <label style={styles.label}>Periode</label>
                     <div style={{ display: "flex", gap: 10 }}>
@@ -648,9 +622,28 @@ export default function LaporanPage() {
             {/* DATA TABLE */}
             <div style={styles.panelTable}>
                 <div style={styles.tableHeader}>
-                    <h3
-                        style={styles.panelTitleTable}
-                    >{`Detail Produksi (${kelompok === "ALL" ? "Keseluruhan" : kelompok}) Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h3>
+                    <div style={styles.tableHeaderMain}>
+                        <h3
+                            style={styles.panelTitleTable}
+                        >{`Detail Produksi (${kelompok === "ALL" ? "Keseluruhan" : kelompok}) Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h3>
+                        <div style={styles.tableSearchWrap}>
+                            <input
+                                style={styles.inputSearch}
+                                placeholder="Cari SPK atau Nama..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                            {searchTerm && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchTerm("")}
+                                    style={styles.clearBtn}
+                                >
+                                    ×
+                                </button>
+                            )}
+                        </div>
+                    </div>
                     <span style={styles.tableSubtitle}>
                         Menampilkan {filteredPerSpk.length} Data
                     </span>
@@ -1091,11 +1084,22 @@ const styles = {
         top: 0,
         zIndex: 10,
     },
+    tableHeaderMain: {
+        display: "flex",
+        alignItems: "center",
+        gap: "12px",
+        flexWrap: "wrap",
+    },
     panelTitleTable: {
         fontSize: "16px",
         fontWeight: 800,
         color: "#111827",
         margin: 0,
+    },
+    tableSearchWrap: {
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
     },
     tableSubtitle: { fontSize: "12px", color: "#6B7280", fontWeight: 600 },
     tableWrapper: {
