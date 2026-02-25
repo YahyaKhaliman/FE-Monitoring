@@ -45,14 +45,16 @@ export default function LoginPage() {
     e.preventDefault();
     setMsg(null);
 
-    if (!userKode || !password) {
+    const normalizedUserKode = String(userKode || "").trim().toUpperCase();
+
+    if (!normalizedUserKode || !password) {
       toast.warning("Kode User dan Password wajib diisi", {theme: "colored"});
       return;
     }
 
     setLoading(true);
     try {
-      const res = await apiLogin(userKode, password);
+      const res = await apiLogin(normalizedUserKode, password);
       if (!res?.ok) {
         toast.error(res?.message, {theme: "colored"});
         return;
@@ -68,7 +70,7 @@ export default function LoginPage() {
       };
 
       auth.login(normalizedUser, token);
-      if (savePassword) saveCred(userKode);
+      if (savePassword) saveCred(normalizedUserKode);
       else clearCred();
 
       goAfterLogin(normalizedUser);
@@ -98,7 +100,8 @@ export default function LoginPage() {
                 style={styles.input}
                 placeholder="Masukkan kode user"
                 value={userKode}
-                onChange={(e) => setUserKode(e.target.value)}
+                autoCapitalize="characters"
+                onChange={(e) => setUserKode(e.target.value.toUpperCase())}
               />
             </div>
           </div>
