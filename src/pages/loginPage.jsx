@@ -109,7 +109,7 @@ export default function LoginPage() {
             <div style={styles.loginCard}>
                 <div style={styles.brandSection}>
                     <h2 style={styles.title}>{"Monitoring Job"}</h2>
-                    <p style={styles.subtitle}>Selamat datang kembali</p>
+                    <p style={styles.subtitle}>Selamat datang</p>
                 </div>
 
                 <form onSubmit={submit} style={styles.form}>
