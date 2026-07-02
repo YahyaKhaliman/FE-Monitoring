@@ -1,0 +1,41 @@
+name: Frontend Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-deploy-vps-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy and build frontend on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            cd "${{ secrets.VPS_FRONTEND_PATH }}"
+            git fetch --all
+            git reset --hard origin/main
+            npm ci
+            npm run build
+
+      - name: Publish summary
+        run: |
+          echo "✓ Code pulled from GitHub" >> $GITHUB_STEP_SUMMARY
+          echo "✓ Dependencies installed (npm ci)" >> $GITHUB_STEP_SUMMARY
+          echo "✓ Vite project built successfully on VPS" >> $GITHUB_STEP_SUMMARY

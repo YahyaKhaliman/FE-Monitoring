@@ -50,8 +50,14 @@ export default function MonitoringJobPage() {
             });
 
             if (res.ok) {
-                setRows(res.data || []);
-                setAvg(res.persen || 0);
+                const monitorData = res.data || {};
+                const isNewFormat = monitorData && typeof monitorData === 'object' && 'list' in monitorData;
+                
+                const rowsData = isNewFormat ? (monitorData.list || []) : (res.data || []);
+                const persenData = isNewFormat ? (monitorData.persen || 0) : (res.persen || 0);
+
+                setRows(rowsData);
+                setAvg(persenData);
             } else {
                 setRows([]);
                 setAvg(0);

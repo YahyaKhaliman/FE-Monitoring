@@ -135,15 +135,17 @@ export default function LaporanPage() {
                 return;
             }
 
+            const laporanData = res.data || res || {};
+
             setSummary({
-                total_target: res.summary?.total_target || 0,
-                total_realisasi: res.summary?.total_realisasi || 0,
-                capaian: res.summary?.persen || 0,
-                total_spk: res.by_spk?.length || 0,
+                total_target: laporanData.summary?.total_target || 0,
+                total_realisasi: laporanData.summary?.total_realisasi || 0,
+                capaian: laporanData.summary?.persen || 0,
+                total_spk: laporanData.by_spk?.length || 0,
             });
 
             setPerTanggal(
-                (res.by_date || []).map((r) => ({
+                (laporanData.by_date || []).map((r) => ({
                     name: formatDateIndo(r.tanggal),
                     target: r.target,
                     realisasi: r.realisasi,
@@ -151,7 +153,7 @@ export default function LaporanPage() {
             );
 
             setPerLine(
-                (res.by_per_line || []).map((r) => ({
+                (laporanData.by_per_line || []).map((r) => ({
                     line: r.line,
                     persen: Number(r.persen || 0),
                     target: Number(r.target || 0),
@@ -160,7 +162,7 @@ export default function LaporanPage() {
             );
 
             setPerSpk(
-                (res.by_spk || []).map((r) => ({
+                (laporanData.by_spk || []).map((r) => ({
                     spk: r.spk,
                     spk_tanggal: r.spk_tanggal,
                     spk_dateline: r.spk_dateline,

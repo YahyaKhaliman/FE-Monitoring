@@ -69,9 +69,18 @@ export default function LoginPage() {
                 return;
             }
 
-            const payload = res?.data ?? res;
-            const userObj = payload?.data ?? payload ?? {};
-            const token = res?.token || payload?.token || null;
+            const token = res?.data?.token || res?.token || res?.data || null;
+
+            let userObj = {};
+            if (res?.data?.user) {
+                userObj = res.data.user;
+            } else if (res?.data && res.data.user_kode) {
+                userObj = res.data;
+            } else if (res?.user_kode) {
+                userObj = res;
+            } else {
+                userObj = res?.data ?? res ?? {};
+            }
 
             const normalizedUser = {
                 ...userObj,
@@ -99,7 +108,7 @@ export default function LoginPage() {
         <div style={styles.container}>
             <div style={styles.loginCard}>
                 <div style={styles.brandSection}>
-                    <h2 style={styles.title}>{"Monitoring Job (Jahit)"}</h2>
+                    <h2 style={styles.title}>{"Monitoring Job"}</h2>
                     <p style={styles.subtitle}>Selamat datang kembali</p>
                 </div>
 
