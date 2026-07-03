@@ -12,7 +12,6 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { MdSearch, MdArrowBack } from "react-icons/md";
 import { SkeletonTable } from "../../components/Skeleton";
-import { formatDate } from "../../utils/date";
 
 export default function RealisasiJobPage() {
     const navigate = useNavigate();
@@ -862,9 +861,6 @@ export default function RealisasiJobPage() {
                                                 <td style={styles.td}>
                                                     <div style={styles.spkName}>
                                                         {d.spk_nama}
-                                                    </div>
-                                                    <div style={styles.spkDate}>
-                                                        {formatDate(d.tanggal)}
                                                     </div>
                                                 </td>
                                                 <td style={styles.tdTarget}>
