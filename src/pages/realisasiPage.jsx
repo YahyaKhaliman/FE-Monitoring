@@ -11,6 +11,7 @@ import { loadUser } from "../utils/storage";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { MdSearch } from "react-icons/md";
+import { SkeletonTable } from "../components/Skeleton";
 
 function formatDateDDMMYYYY(dateStr) {
     if (!dateStr) return "-";
@@ -510,12 +511,12 @@ export default function RealisasiJobPage() {
                         </tr>
                     </thead>
                     <tbody>
-                        {data.length === 0 ? (
+                        {loading ? (
+                            <SkeletonTable cols={6} rows={5} />
+                        ) : data.length === 0 ? (
                             <tr>
                                 <td style={styles.tdEmpty} colSpan={6}>
-                                    {loading
-                                        ? "Sedang memuat..."
-                                        : "Tidak ada data realisasi di kelompok ini"}
+                                    Tidak ada data realisasi di kelompok ini
                                 </td>
                             </tr>
                         ) : (
@@ -962,6 +963,8 @@ const styles = {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+        flexWrap: "wrap",
+        gap: "12px",
         background: "#fff",
         padding: "20px 24px",
         borderRadius: "16px",
@@ -974,6 +977,7 @@ const styles = {
 
     filters: {
         display: "flex",
+        flexWrap: "wrap",
         gap: 16,
         background: "#fff",
         border: "1px solid #E5E7EB",

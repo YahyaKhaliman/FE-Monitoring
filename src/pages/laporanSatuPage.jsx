@@ -5,6 +5,11 @@ import { getLaporan } from "../services/laporan.service";
 import { getMonitoringKelompok } from "../services/monitoringJob.service";
 import { useAuth } from "../context/authProvider";
 import { toast } from "react-toastify";
+import {
+    SkeletonCard,
+    SkeletonChart,
+    SkeletonTable,
+} from "../components/Skeleton";
 
 import {
     BarChart,
@@ -17,7 +22,6 @@ import {
     ResponsiveContainer,
     LabelList,
 } from "recharts";
-import { BiFontColor } from "react-icons/bi";
 
 function toISO(d) {
     return new Date(d).toISOString().slice(0, 10);
@@ -61,6 +65,16 @@ export default function LaporanPage() {
     );
     const [kelompokOptions, setKelompokOptions] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [searchInput, setSearchInput] = useState("");
+
+    // Debouncing search bar
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setSearchTerm(searchInput);
+        }, 400);
+
+        return () => clearTimeout(handler);
+    }, [searchInput]);
 
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState(null);
@@ -85,9 +99,8 @@ export default function LaporanPage() {
 
     const isMobile = viewportWidth <= 768;
     const isTablet = viewportWidth > 768 && viewportWidth <= 1024;
-    const barChartHeight = isMobile ? 240 : isTablet ? 280 : 320;
-    const lineChartHeight = isMobile ? 260 : 320;
-    const showBarLabels = !isMobile;
+    const barChartHeight = isMobile ? 200 : isTablet ? 230 : 260;
+    const lineChartHeight = isMobile ? 210 : 260;
 
     useEffect(() => {
         if (typeof window === "undefined") return;
@@ -316,30 +329,41 @@ export default function LaporanPage() {
 
             {/* STATS CARDS */}
             <div style={styles.cards}>
-                <StatCard
-                    title="Total Target"
-                    value={formatNumber(summary.total_target)}
-                    desc={`Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}
-                    color="#44423e"
-                />
-                <StatCard
-                    title="Total Realisasi"
-                    value={formatNumber(summary.total_realisasi)}
-                    desc={`Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}
-                    color="#B34E33"
-                />
-                <StatCard
-                    title="Efektivitas"
-                    value={formatPercent(summary.capaian)}
-                    desc={`Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}
-                    color="#0F766E"
-                />
-                <StatCard
-                    title="Total SPK"
-                    value={`${perSpk.filter((r) => Number(r.pesan && r.total_realisasi / r.pesan >= 1)).length} / ${summary.total_spk}`}
-                    desc="Done / Total"
-                    color="#4338CA"
-                />
+                {loading ? (
+                    <>
+                        <SkeletonCard />
+                        <SkeletonCard />
+                        <SkeletonCard />
+                        <SkeletonCard />
+                    </>
+                ) : (
+                    <>
+                        <StatCard
+                            title="Total Target"
+                            value={formatNumber(summary.total_target)}
+                            desc={`Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}
+                            color="#44423e"
+                        />
+                        <StatCard
+                            title="Total Realisasi"
+                            value={formatNumber(summary.total_realisasi)}
+                            desc={`Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}
+                            color="#B34E33"
+                        />
+                        <StatCard
+                            title="Efektivitas"
+                            value={formatPercent(summary.capaian)}
+                            desc={`Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}
+                            color="#0F766E"
+                        />
+                        <StatCard
+                            title="Total SPK"
+                            value={`${perSpk.filter((r) => Number(r.pesan && r.total_realisasi / r.pesan >= 1)).length} / ${summary.total_spk}`}
+                            desc="Done / Total"
+                            color="#4338CA"
+                        />
+                    </>
+                )}
             </div>
 
             {/* FILTER */}
@@ -389,234 +413,317 @@ export default function LaporanPage() {
 
             {/* CHARTS GRID */}
             <div style={styles.chartGrid}>
-                <div style={styles.panel}>
-                    <h3
-                        style={styles.panelTitle}
-                    >{`Grafik Capaian (${kelompok === "ALL" ? "Keseluruhan" : kelompok}) ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h3>
-                    <div
-                        style={{
-                            width: "100%",
-                            height: barChartHeight,
-                            marginTop: 16,
-                        }}
-                    >
-                        <ResponsiveContainer>
-                            <BarChart data={perTanggal}>
-                                <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    vertical={false}
-                                    stroke="#E5E7EB"
-                                />
-                                <XAxis
-                                    dataKey="name"
-                                    fontSize={isMobile ? 10 : 11}
-                                    stroke="#6B7280"
-                                    fontWeight={600}
-                                    interval="preserveStartEnd"
-                                    minTickGap={isMobile ? 18 : 10}
-                                    tickFormatter={(value) => {
-                                        if (!isMobile) return value;
-                                        const [dd, mm] = String(
-                                            value || "",
-                                        ).split("-");
-                                        return dd && mm ? `${dd}/${mm}` : value;
-                                    }}
-                                />
-                                <YAxis
-                                    width={isMobile ? 36 : 48}
-                                    fontSize={isMobile ? 10 : 11}
-                                    stroke="#6B7280"
-                                    fontWeight={600}
-                                />
-                                <Tooltip
-                                    cursor={{ fill: "#F9FAFB" }}
-                                    contentStyle={styles.tooltip}
-                                />
-                                <Bar
-                                    dataKey="target"
-                                    fill="#E8D8C3"
-                                    radius={[4, 4, 0, 0]}
-                                    name="Target"
-                                    barSize={isMobile ? 14 : 22}
-                                >
-                                    {showBarLabels && (
-                                        <LabelList
-                                            dataKey="target"
-                                            position="insideBottom"
-                                            formatter={formatNumber}
-                                            fontSize={11}
-                                            fontFamily="'Inter', sans-serif"
-                                            fontWeight={700}
-                                            fill="#000000"
-                                        />
-                                    )}
-                                </Bar>
-                                <Bar
-                                    dataKey="realisasi"
-                                    fill="#C96E4D"
-                                    radius={[4, 4, 0, 0]}
-                                    name="Realisasi"
-                                    barSize={isMobile ? 14 : 22}
-                                >
-                                    {showBarLabels && (
-                                        <LabelList
-                                            dataKey="realisasi"
-                                            position="insideBottom"
-                                            formatter={formatNumber}
-                                            fontSize={11}
-                                            fontFamily="'Inter', sans-serif"
-                                            fontWeight={700}
-                                            fill="#000000"
-                                        />
-                                    )}
-                                </Bar>
-                                <Legend
-                                    iconType="square"
-                                    align="center"
-                                    wrapperStyle={{
-                                        fontSize: isMobile ? 11 : 12,
-                                    }}
-                                    payload={[
-                                        {
-                                            value: "Realisasi",
-                                            color: "#C96E4D",
-                                        },
-                                        { value: "Target", color: "#E8D8C3" },
-                                    ]}
-                                />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                <div style={styles.panel}>
-                    <h3 style={styles.panelTitle}>
-                        Presentase Capaian {formatDateIndo(tglAwal)} -{" "}
-                        {formatDateIndo(tglAkhir)}
-                    </h3>
-                    <div
-                        style={{
-                            width: "100%",
-                            height: lineChartHeight,
-                        }}
-                    >
-                        <ResponsiveContainer>
-                            <BarChart
-                                data={perLine}
-                                layout="vertical"
-                                margin={{
-                                    top: 8,
-                                    right: 20,
-                                    left: 10,
-                                    bottom: 8,
+                {loading ? (
+                    <>
+                        <SkeletonChart />
+                        <SkeletonChart />
+                    </>
+                ) : (
+                    <>
+                        <div style={styles.panel}>
+                            <h3
+                                style={styles.panelTitle}
+                            >{`Grafik Capaian (${kelompok === "ALL" ? "Keseluruhan" : kelompok}) ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h3>
+                            <div
+                                style={{
+                                    width: "100%",
+                                    height: barChartHeight,
+                                    marginTop: 16,
                                 }}
                             >
-                                <CartesianGrid
-                                    strokeDasharray="3 3"
-                                    horizontal={false}
-                                    stroke="#E5E7EB"
-                                />
-                                <XAxis
-                                    type="number"
-                                    domain={[0, 100]}
-                                    tickFormatter={(v) => `${v}%`}
-                                    fontSize={isMobile ? 10 : 11}
-                                    stroke="#6B7280"
-                                    fontWeight={600}
-                                />
-                                <YAxis
-                                    type="category"
-                                    dataKey="line"
-                                    width={isMobile ? 70 : 100}
-                                    fontSize={isMobile ? 10 : 12}
-                                    stroke="#374151"
-                                    fontWeight={700}
-                                />
-                                <Tooltip
-                                    contentStyle={styles.tooltip}
-                                    content={({ active, payload, label }) => {
-                                        if (!active || !payload?.length)
-                                            return null;
-                                        const row = payload[0]?.payload || {};
-
-                                        return (
-                                            <div style={styles.tooltip}>
-                                                <div
-                                                    style={{
-                                                        fontWeight: 800,
-                                                        marginBottom: 6,
-                                                        color: "#44453e",
-                                                    }}
-                                                >
-                                                    Kelompok: {label || "-"}
-                                                </div>
-                                                <div
-                                                    style={{ color: "#e8d8c3" }}
-                                                >
-                                                    Target:{" "}
-                                                    {formatNumber(row.target)}
-                                                </div>
-                                                <div
-                                                    style={{ color: "#b34e33" }}
-                                                >
-                                                    Realisasi:{" "}
-                                                    {formatNumber(
-                                                        row.realisasi,
-                                                    )}
-                                                </div>
-                                                <div
-                                                    style={{
-                                                        fontWeight: 700,
-                                                        color: "#44453e",
-                                                    }}
-                                                >
-                                                    Capaian:{" "}
-                                                    {formatPercent(row.persen)}
-                                                </div>
-                                            </div>
-                                        );
-                                    }}
-                                    labelFormatter={(label) =>
-                                        `Kelompok: ${label}`
-                                    }
-                                />
-                                <Bar
-                                    dataKey="persen"
-                                    name="Capaian"
-                                    fill="#B34E33"
-                                    radius={[0, 6, 6, 0]}
-                                    barSize={isMobile ? 16 : 22}
-                                >
-                                    <LabelList
-                                        dataKey="persen"
-                                        position="right"
-                                        formatter={(v) => formatPercent(v)}
-                                        fontSize={10}
-                                        fontWeight={700}
-                                        fill="#374151"
-                                    />
-                                </Bar>
-                                <Bar
-                                    dataKey="target"
-                                    name="Target"
-                                    fill="#E8D8C3"
-                                    hide
-                                />
-                                <Bar
-                                    dataKey="realisasi"
-                                    name="Realisasi"
-                                    fill="#C96E4D"
-                                    hide
-                                />
-                            </BarChart>
-                        </ResponsiveContainer>
-                        {perLine.length === 0 && (
-                            <div style={styles.emptyChartState}>
-                                Data line belum tersedia untuk periode ini
+                                <ResponsiveContainer>
+                                    <BarChart
+                                        data={perTanggal}
+                                        margin={{
+                                            top: 12,
+                                            right: 10,
+                                            left: isMobile ? -20 : -10,
+                                            bottom: 0,
+                                        }}
+                                    >
+                                        <CartesianGrid
+                                            strokeDasharray="3 3"
+                                            vertical={false}
+                                            stroke="#E5E7EB"
+                                        />
+                                        <XAxis
+                                            dataKey="name"
+                                            fontSize={isMobile ? 10 : 11}
+                                            stroke="#6B7280"
+                                            fontWeight={600}
+                                            interval="preserveStartEnd"
+                                            minTickGap={isMobile ? 18 : 10}
+                                            tickFormatter={(value) => {
+                                                if (!isMobile) return value;
+                                                const [dd, mm] = String(
+                                                    value || "",
+                                                ).split("-");
+                                                return dd && mm
+                                                    ? `${dd}/${mm}`
+                                                    : value;
+                                            }}
+                                        />
+                                        <YAxis
+                                            width={isMobile ? 36 : 48}
+                                            fontSize={isMobile ? 10 : 11}
+                                            stroke="#6B7280"
+                                            fontWeight={600}
+                                            tickFormatter={(v) =>
+                                                formatNumber(v)
+                                            }
+                                        />
+                                        <Tooltip
+                                            contentStyle={styles.tooltip}
+                                            content={({
+                                                active,
+                                                payload,
+                                                label,
+                                            }) => {
+                                                if (!active || !payload?.length)
+                                                    return null;
+                                                return (
+                                                    <div
+                                                        style={
+                                                            styles.tooltipInner
+                                                        }
+                                                    >
+                                                        <div
+                                                            style={
+                                                                styles.tooltipTitle
+                                                            }
+                                                        >
+                                                            {label}
+                                                        </div>
+                                                        {payload.map(
+                                                            (p, idx) => (
+                                                                <div
+                                                                    key={idx}
+                                                                    style={{
+                                                                        fontSize:
+                                                                            "12px",
+                                                                        color: p.color,
+                                                                        fontWeight: 600,
+                                                                    }}
+                                                                >
+                                                                    {p.name}:{" "}
+                                                                    {formatNumber(
+                                                                        p.value,
+                                                                    )}
+                                                                </div>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                );
+                                            }}
+                                        />
+                                        <Bar
+                                            dataKey="realisasi"
+                                            name="Realisasi"
+                                            fill="#B34E33"
+                                            radius={[4, 4, 0, 0]}
+                                            barSize={isMobile ? 16 : 24}
+                                        >
+                                            {!isMobile && (
+                                                <LabelList
+                                                    dataKey="realisasi"
+                                                    position="top"
+                                                    formatter={(v) =>
+                                                        formatNumber(v)
+                                                    }
+                                                    fontSize={10}
+                                                    fontWeight={700}
+                                                    fill="#000000"
+                                                />
+                                            )}
+                                        </Bar>
+                                        <Bar
+                                            dataKey="target"
+                                            name="Target"
+                                            fill="#E5E7EB"
+                                            radius={[4, 4, 0, 0]}
+                                            barSize={isMobile ? 16 : 24}
+                                        >
+                                            {!isMobile && (
+                                                <LabelList
+                                                    dataKey="target"
+                                                    position="top"
+                                                    formatter={(v) =>
+                                                        formatNumber(v)
+                                                    }
+                                                    fontSize={10}
+                                                    fontWeight={700}
+                                                    fill="#000000"
+                                                />
+                                            )}
+                                        </Bar>
+                                        <Legend
+                                            iconType="square"
+                                            align="center"
+                                            wrapperStyle={{
+                                                fontSize: isMobile ? 11 : 12,
+                                            }}
+                                            payload={[
+                                                {
+                                                    value: "Realisasi",
+                                                    color: "#C96E4D",
+                                                },
+                                                {
+                                                    value: "Target",
+                                                    color: "#E8D8C3",
+                                                },
+                                            ]}
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
                             </div>
-                        )}
-                    </div>
-                </div>
+                        </div>
+
+                        <div style={styles.panel}>
+                            <h3 style={styles.panelTitle}>
+                                Presentase Capaian {formatDateIndo(tglAwal)} -{" "}
+                                {formatDateIndo(tglAkhir)}
+                            </h3>
+                            <div
+                                style={{
+                                    width: "100%",
+                                    height: lineChartHeight,
+                                }}
+                            >
+                                <ResponsiveContainer>
+                                    <BarChart
+                                        data={perLine}
+                                        layout="vertical"
+                                        margin={{
+                                            top: 8,
+                                            right: 50,
+                                            left: isMobile ? -15 : -5,
+                                            bottom: 0,
+                                        }}
+                                    >
+                                        <CartesianGrid
+                                            strokeDasharray="3 3"
+                                            horizontal={false}
+                                            stroke="#E5E7EB"
+                                        />
+                                        <XAxis
+                                            type="number"
+                                            domain={[
+                                                0,
+                                                (dataMax) =>
+                                                    Math.max(
+                                                        100,
+                                                        Math.ceil(
+                                                            dataMax / 10,
+                                                        ) * 10,
+                                                    ),
+                                            ]}
+                                            tickFormatter={(v) => `${v}%`}
+                                            fontSize={isMobile ? 10 : 11}
+                                            stroke="#6B7280"
+                                            fontWeight={600}
+                                        />
+                                        <YAxis
+                                            type="category"
+                                            dataKey="line"
+                                            width={isMobile ? 70 : 100}
+                                            fontSize={isMobile ? 10 : 12}
+                                            stroke="#374151"
+                                            fontWeight={700}
+                                        />
+                                        <Tooltip
+                                            contentStyle={styles.tooltip}
+                                            content={({
+                                                active,
+                                                payload,
+                                                label,
+                                            }) => {
+                                                if (!active || !payload?.length)
+                                                    return null;
+                                                return (
+                                                    <div
+                                                        style={
+                                                            styles.tooltipInner
+                                                        }
+                                                    >
+                                                        <div
+                                                            style={
+                                                                styles.tooltipTitle
+                                                            }
+                                                        >
+                                                            Line: {label}
+                                                        </div>
+                                                        {payload.map(
+                                                            (p, idx) => (
+                                                                <div
+                                                                    key={idx}
+                                                                    style={{
+                                                                        fontSize:
+                                                                            "12px",
+                                                                        color: p.color,
+                                                                        fontWeight: 600,
+                                                                    }}
+                                                                >
+                                                                    {p.name}:{" "}
+                                                                    {p.name ===
+                                                                    "Capaian"
+                                                                        ? formatPercent(
+                                                                              p.value,
+                                                                          )
+                                                                        : formatNumber(
+                                                                              p.value,
+                                                                          )}
+                                                                </div>
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                );
+                                            }}
+                                            labelFormatter={(label) =>
+                                                `Kelompok: ${label}`
+                                            }
+                                        />
+                                        <Bar
+                                            dataKey="persen"
+                                            name="Capaian"
+                                            fill="#B34E33"
+                                            radius={[0, 6, 6, 0]}
+                                            barSize={isMobile ? 16 : 22}
+                                        >
+                                            <LabelList
+                                                dataKey="persen"
+                                                position="right"
+                                                formatter={(v) =>
+                                                    formatPercent(v)
+                                                }
+                                                fontSize={10}
+                                                fontWeight={700}
+                                                fill="#374151"
+                                            />
+                                        </Bar>
+                                        <Bar
+                                            dataKey="target"
+                                            name="Target"
+                                            fill="#E8D8C3"
+                                            hide
+                                        />
+                                        <Bar
+                                            dataKey="realisasi"
+                                            name="Realisasi"
+                                            fill="#C96E4D"
+                                            hide
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                                {perLine.length === 0 && (
+                                    <div style={styles.emptyChartState}>
+                                        Data line belum tersedia untuk periode
+                                        ini
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
 
             {msg && <div style={styles.errorAlert}>{msg}</div>}
@@ -632,13 +739,16 @@ export default function LaporanPage() {
                             <input
                                 style={styles.inputSearch}
                                 placeholder="Cari SPK atau Nama..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                value={searchInput}
+                                onChange={(e) => setSearchInput(e.target.value)}
                             />
-                            {searchTerm && (
+                            {searchInput && (
                                 <button
                                     type="button"
-                                    onClick={() => setSearchTerm("")}
+                                    onClick={() => {
+                                        setSearchInput("");
+                                        setSearchTerm("");
+                                    }}
                                     style={styles.clearBtn}
                                 >
                                     ×
@@ -684,7 +794,9 @@ export default function LaporanPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredPerSpk.length === 0 ? (
+                            {loading ? (
+                                <SkeletonTable cols={8} rows={5} />
+                            ) : filteredPerSpk.length === 0 ? (
                                 <tr>
                                     <td
                                         colSpan={8}
@@ -904,6 +1016,8 @@ const styles = {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+        flexWrap: "wrap",
+        gap: "12px",
         marginBottom: "32px",
     },
     topTitle: {
@@ -969,13 +1083,13 @@ const styles = {
     chartGrid: {
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-        gap: "24px",
-        marginBottom: "32px",
+        gap: "16px",
+        marginBottom: "24px",
     },
     panel: {
         background: "#ffffff",
         borderRadius: "16px",
-        padding: "24px",
+        padding: "16px",
         border: "1px solid #E5E7EB",
     },
     panelTitle: {
@@ -1034,7 +1148,8 @@ const styles = {
         border: "2px solid #B34E33",
         padding: "0 16px",
         fontSize: "14px",
-        width: "260px",
+        width: "100%",
+        maxWidth: "260px",
         outline: "none",
     },
     select: {
@@ -1149,7 +1264,7 @@ const styles = {
         zIndex: 11,
     },
     thSubDate: {
-        padding: "3px",
+        padding: "4px",
         textAlign: "center",
         background: "#F0F7FF",
         color: "#2563EB",
@@ -1234,6 +1349,19 @@ const styles = {
         borderRadius: "12px",
         border: "1px solid #E5E7EB",
         boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+    },
+    tooltipInner: {
+        background: "#fff",
+        padding: "12px 16px",
+        borderRadius: "12px",
+        border: "1px solid #E5E7EB",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+    },
+    tooltipTitle: {
+        fontWeight: 800,
+        marginBottom: 6,
+        color: "#111827",
+        fontSize: "13px",
     },
 
     td: {

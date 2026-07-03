@@ -66,3 +66,188 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* ==========================================
+   INTERACTIVE & RESPONSIVE DESIGN SYSTEM OVERRIDES
+   (Mengikuti Guideline /ui-ux-pro-max)
+   ========================================== */
+
+/* Global Smooth Transitions */
+button, input, select, a, tr, td, .card {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Elevate Buttons on Hover & Active States */
+button:not(:disabled):hover {
+  transform: translateY(-1.5px) !important;
+  filter: brightness(1.05) !important;
+  box-shadow: 0 4px 12px rgba(179, 78, 51, 0.15) !important;
+}
+
+button:not(:disabled):active {
+  transform: translateY(0) !important;
+  filter: brightness(0.95) !important;
+  box-shadow: none !important;
+}
+
+/* Menu Card Hover Effects */
+button[style*="borderRadius: 16"] {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+button[style*="borderRadius: 16"]:hover {
+  transform: translateY(-4px) !important;
+  border-color: #B34E33 !important;
+  box-shadow: 0 10px 20px rgba(179, 78, 51, 0.08) !important;
+}
+
+/* Responsive Adaptive Adjustments for Tablet and Mobile */
+@media (max-width: 768px) {
+  /* Halaman Utama Padding Adaptif */
+  div[style*="padding:"] {
+    padding: clamp(12px, 3vw, 20px) !important;
+  }
+  
+  /* Susunan Filter menjadi Kolom Vertikal di Mobile */
+  div[style*="display: flex"][style*="flexWrap: wrap"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+
+  /* Lebarkan input search, select, dan filter group */
+  input[style*="width:"], select[style*="minWidth:"] {
+    width: 100% !important;
+    min-width: unset !important;
+  }
+
+  /* Perbesar tombol aksi tabel untuk layar sentuh agar mudah ditekan jari (Min 40px) */
+  button[style*="btnEdit"], button[style*="btnDelete"], button[style*="color: #fff"][style*="background: #b38600"] {
+    min-width: 42px !important;
+    min-height: 42px !important;
+    padding: 8px 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Rapatkan Grid Stat Card di Mobile */
+  div[style*="display: grid"][style*="gridTemplateColumns: repeat(auto-fit, minmax(220px, 1fr))"] {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Perbaiki chart grid agar tidak terpotong */
+  div[style*="display: grid"][style*="gridTemplateColumns: repeat(auto-fit, minmax(300px, 1fr))"] {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+
+/* ==========================================
+   SKELETON SHIMMER LOADING EFFECT
+   ========================================== */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+  display: inline-block;
+}
+
+/* Shimmer untuk border/background overlay */
+.skeleton-tr:hover {
+  background: transparent !important;
+}
+
+/* ==========================================
+   TOASTIFY CUSTOM THEME — Warm Cream Palette
+   Selaras dengan tema #B34E33 (terracotta)
+   ========================================== */
+
+.Toastify__toast {
+  font-family: 'Readex Pro', 'Inter', system-ui, sans-serif !important;
+  border-radius: 14px !important;
+  padding: 14px 16px !important;
+  box-shadow: 0 8px 24px rgba(179, 78, 51, 0.10) !important;
+  border: 1px solid #F1E9E2 !important;
+  min-height: 56px !important;
+  align-items: center !important;
+}
+
+.Toastify__toast-body {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  padding: 0 6px !important;
+}
+
+/* ── SUCCESS — soft sage green warm ── */
+.Toastify__toast--success {
+  background: #F4FBF6 !important;
+  color: #2D6A4F !important;
+  border-color: #B7DFC9 !important;
+}
+.Toastify__toast--success .Toastify__toast-icon svg {
+  fill: #52B788 !important;
+}
+.Toastify__toast--success .Toastify__progress-bar {
+  background: #52B788 !important;
+}
+
+/* ── ERROR — soft warm terracotta ── */
+.Toastify__toast--error {
+  background: #FFF7F5 !important;
+  color: #8E3A20 !important;
+  border-color: #F5C6B8 !important;
+}
+.Toastify__toast--error .Toastify__toast-icon svg {
+  fill: #B34E33 !important;
+}
+.Toastify__toast--error .Toastify__progress-bar {
+  background: #B34E33 !important;
+}
+
+/* ── WARNING — soft warm amber ── */
+.Toastify__toast--warning {
+  background: #FFFBF0 !important;
+  color: #7A5C1E !important;
+  border-color: #F5DFA0 !important;
+}
+.Toastify__toast--warning .Toastify__toast-icon svg {
+  fill: #D4A017 !important;
+}
+.Toastify__toast--warning .Toastify__progress-bar {
+  background: #D4A017 !important;
+}
+
+/* ── INFO — soft warm slate ── */
+.Toastify__toast--info {
+  background: #F5F8FF !important;
+  color: #2C4A7C !important;
+  border-color: #C3D4F5 !important;
+}
+.Toastify__toast--info .Toastify__toast-icon svg {
+  fill: #4A7FCB !important;
+}
+.Toastify__toast--info .Toastify__progress-bar {
+  background: #4A7FCB !important;
+}
+
+/* ── Close button ── */
+.Toastify__close-button {
+  color: #9CA3AF !important;
+  opacity: 0.7 !important;
+  align-self: center !important;
+}
+.Toastify__close-button:hover {
+  opacity: 1 !important;
+  color: #B34E33 !important;
+}

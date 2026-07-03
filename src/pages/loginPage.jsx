@@ -55,9 +55,7 @@ export default function LoginPage() {
             .toUpperCase();
 
         if (!normalizedUserKode || !password) {
-            toast.warning("Kode User dan Password wajib diisi", {
-                theme: "colored",
-            });
+            toast.warning("Kode User dan Password wajib diisi");
             return;
         }
 
@@ -65,7 +63,7 @@ export default function LoginPage() {
         try {
             const res = await apiLogin(normalizedUserKode, password);
             if (!res?.ok) {
-                toast.error(res?.message, { theme: "colored" });
+                toast.error(res?.message);
                 return;
             }
 
@@ -96,9 +94,15 @@ export default function LoginPage() {
             if (savePassword) saveCred(normalizedUserKode);
             else clearCred();
 
+            const namaUser = normalizedUser?.user_nama || normalizedUser?.nama || normalizedUser?.name || normalizedUserKode;
+            toast.success(`Login Berhasil!\nSelamat Datang ${namaUser}`, {
+                autoClose: 3000,
+                style: { whiteSpace: "pre-line" },
+            });
+
             goAfterLogin(normalizedUser);
         } catch (err) {
-            toast.error(err.response?.data?.message, { theme: "colored" });
+            toast.error(err.response?.data?.message);
         } finally {
             setLoading(false);
         }

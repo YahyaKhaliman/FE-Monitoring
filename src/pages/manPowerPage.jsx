@@ -10,6 +10,7 @@ import {
 import { useAuth } from "../context/authProvider";
 import { toast } from "react-toastify";
 import { MdEdit, MdDelete } from "react-icons/md";
+import { SkeletonTable } from "../components/Skeleton";
 
 function formatDateDDMMYYYY(dateStr) {
     if (!dateStr) return "";
@@ -114,9 +115,10 @@ export default function ManPowerPage() {
                         ? userKelompok
                         : undefined,
             });
-            if (!res.ok) {
+            if (!res || !res.ok) {
                 setRows([]);
-                throw new Error(res.message || "Gagal memuat data");
+                console.error("Gagal load manpower:", res?.message || "Format response tidak valid");
+                return;
             }
             const serverRows = Array.isArray(res.data) ? res.data : [];
             const filteredRows =
@@ -128,14 +130,20 @@ export default function ManPowerPage() {
 
             setRows(filteredRows);
             return res;
+        } catch (error) {
+            setRows([]);
+            console.error("Error fetching manpower:", error);
+            toast.error("Gagal memuat data Man Power");
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        if (user?.user_cab) refreshData();
-    }, [tanggal]);
+        if (user?.user_cab) {
+            refreshData();
+        }
+    }, [tanggal, user]);
 
     // --- Form Logic ---
     const openAdd = () => {
@@ -294,34 +302,38 @@ export default function ManPowerPage() {
                         </tr>
                     </thead>
                     <tbody>
-                        {rows.map((r, i) => (
-                            <tr
-                                key={i}
-                                style={
-                                    i % 2 === 0 ? styles.trEven : styles.trOdd
-                                }
-                            >
-                                <td style={styles.td}>{r.tanggal}</td>
-                                <td style={styles.tdBold}>{r.kelompok}</td>
-                                <td style={styles.tdTarget}>{r.mp}</td>
-                                {canInput && canManageRow(r.kelompok) && (
-                                    <td style={styles.tdCenter}>
-                                        <button
-                                            style={styles.btnEdit}
-                                            onClick={() => openEdit(r)}
-                                        >
-                                            <MdEdit />
-                                        </button>
-                                        <button
-                                            style={styles.btnDelete}
-                                            onClick={() => onDelete(r)}
-                                        >
-                                            <MdDelete />
-                                        </button>
-                                    </td>
-                                )}
-                            </tr>
-                        ))}
+                        {loading ? (
+                            <SkeletonTable cols={canInput ? 4 : 3} rows={5} />
+                        ) : (
+                            rows.map((r, i) => (
+                                <tr
+                                    key={i}
+                                    style={
+                                        i % 2 === 0 ? styles.trEven : styles.trOdd
+                                    }
+                                >
+                                    <td style={styles.td}>{r.tanggal}</td>
+                                    <td style={styles.tdBold}>{r.kelompok}</td>
+                                    <td style={styles.tdTarget}>{r.mp}</td>
+                                    {canInput && canManageRow(r.kelompok) && (
+                                        <td style={styles.tdCenter}>
+                                            <button
+                                                style={styles.btnEdit}
+                                                onClick={() => openEdit(r)}
+                                            >
+                                                <MdEdit />
+                                            </button>
+                                            <button
+                                                style={styles.btnDelete}
+                                                onClick={() => onDelete(r)}
+                                            >
+                                                <MdDelete />
+                                            </button>
+                                        </td>
+                                    )}
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </table>
                 {rows.length === 0 && !loading && (
@@ -442,6 +454,8 @@ const styles = {
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
+        flexWrap: "wrap",
+        gap: "12px",
         background: "#fff",
         padding: "15px 20px",
         borderRadius: "16px",
@@ -453,6 +467,7 @@ const styles = {
 
     filters: {
         display: "flex",
+        flexWrap: "wrap",
         gap: 16,
         background: "#fff",
         border: "1px solid #E5E7EB",
@@ -598,7 +613,8 @@ const styles = {
     },
     modal: {
         background: "#fff",
-        width: "400px",
+        width: "90%",
+        maxWidth: "400px",
         borderRadius: "20px",
         padding: "24px",
     },
