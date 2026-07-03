@@ -1,16 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { changePassword } from "../../services/user.service";
 import { loadUser } from "../../utils/storage";
 import { toast } from "react-toastify";
+import { MdLock } from "react-icons/md";
 
 export default function ChangePasswordPage() {
     const nav = useNavigate();
     const user = loadUser();
 
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    const isMobile = windowWidth <= 480;
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
     const [oldPass, setOldPass] = useState("");
     const [newPass, setNewPass] = useState("");
     const [loading, setLoading] = useState(false);
+    const [isFocusOld, setIsFocusOld] = useState(false);
+    const [isFocusNew, setIsFocusNew] = useState(false);
 
     async function submit(e) {
         e.preventDefault();
@@ -46,9 +58,15 @@ export default function ChangePasswordPage() {
 
     return (
         <div style={styles.page}>
-            <div style={styles.card}>
+            <div style={{
+                ...styles.card,
+                padding: isMobile ? "32px 20px" : "40px 32px",
+                borderRadius: isMobile ? 20 : 24,
+            }}>
                 <div style={styles.header}>
-                    <div style={styles.iconCircle}>🔐</div>
+                    <div style={styles.iconCircle}>
+                        <MdLock size={28} color="#B34E33" />
+                    </div>
                     <h1 style={styles.title}>Ganti Password</h1>
                 </div>
 
@@ -59,7 +77,13 @@ export default function ChangePasswordPage() {
                             type="password"
                             value={oldPass}
                             onChange={(e) => setOldPass(e.target.value)}
-                            style={styles.input}
+                            onFocus={() => setIsFocusOld(true)}
+                            onBlur={() => setIsFocusOld(false)}
+                            style={{
+                                ...styles.input,
+                                borderColor: isFocusOld ? "#B34E33" : "#D1D5DB",
+                                boxShadow: isFocusOld ? "0 0 0 2px rgba(179, 78, 51, 0.15)" : "none",
+                            }}
                             placeholder="Masukkan password saat ini"
                         />
                     </div>
@@ -70,23 +94,42 @@ export default function ChangePasswordPage() {
                             type="password"
                             value={newPass}
                             onChange={(e) => setNewPass(e.target.value)}
-                            style={styles.input}
+                            onFocus={() => setIsFocusNew(true)}
+                            onBlur={() => setIsFocusNew(false)}
+                            style={{
+                                ...styles.input,
+                                borderColor: isFocusNew ? "#B34E33" : "#D1D5DB",
+                                boxShadow: isFocusNew ? "0 0 0 2px rgba(179, 78, 51, 0.15)" : "none",
+                            }}
                             placeholder="Masukkan password baru"
                         />
                     </div>
 
-                    <div style={styles.actionWrapper}>
+                    <div style={{
+                        ...styles.actionWrapper,
+                        flexDirection: isMobile ? "column-reverse" : "row",
+                        gap: isMobile ? 8 : 12,
+                        marginTop: isMobile ? 24 : 32,
+                    }}>
                         <button
                             type="button"
                             onClick={() => nav("/menu")}
-                            style={styles.btnSecondary}
+                            style={{
+                                ...styles.btnSecondary,
+                                width: isMobile ? "100%" : "auto",
+                                height: isMobile ? "44px" : "48px",
+                            }}
                             disabled={loading}
                         >
                             Kembali
                         </button>
                         <button
                             type="submit"
-                            style={styles.btnPrimary}
+                            style={{
+                                ...styles.btnPrimary,
+                                width: isMobile ? "100%" : "auto",
+                                height: isMobile ? "44px" : "48px",
+                            }}
                             disabled={loading}
                         >
                             {loading ? "Proses..." : "Update Password"}
@@ -172,6 +215,8 @@ const styles = {
         cursor: "pointer",
         flex: 1,
         fontSize: 14,
+        fontFamily: "'Readex Pro', sans-serif",
+        transition: "all 0.2s ease",
     },
     btnPrimary: {
         height: 48,
@@ -184,7 +229,9 @@ const styles = {
         cursor: "pointer",
         flex: 1.5,
         fontSize: 14,
+        fontFamily: "'Readex Pro', sans-serif",
         boxShadow: "0 4px 6px -1px rgba(179, 78, 51, 0.2)",
+        transition: "all 0.2s ease",
     },
     footerInfo: { marginTop: 24, fontSize: 12, color: "#9CA3AF" },
 };

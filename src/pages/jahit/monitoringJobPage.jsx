@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Fragment } from "react";
 import {
     getMonitoring,
     getMonitoringKelompok,
@@ -71,13 +71,15 @@ export default function MonitoringJobPage() {
                 }),
             ]);
 
-            // Bangun map nomor SPK -> nama SPK
+            // Bangun map nomor SPK -> detail SPK (nama & target)
             const newSpkMap = {};
             if (spkRes?.ok && Array.isArray(spkRes.data)) {
                 spkRes.data.forEach((item) => {
                     if (item.nomor) {
-                        newSpkMap[String(item.nomor).trim().toUpperCase()] =
-                            item.nama || "";
+                        newSpkMap[String(item.nomor).trim().toUpperCase()] = {
+                            nama: item.nama || "",
+                            target: Number(item.target || 0),
+                        };
                     }
                 });
             }
@@ -188,6 +190,48 @@ export default function MonitoringJobPage() {
         loadMonitoring();
     }, [tanggal, lini, kelompok]);
 
+    const groupedByJam = useMemo(() => {
+        const groups = {};
+        rows.forEach((item) => {
+            const key = item.jam || "Lainnya";
+            if (!groups[key]) {
+                groups[key] = [];
+            }
+            groups[key].push(item);
+        });
+
+        return Object.keys(groups)
+            .sort((a, b) => {
+                const na = parseInt(a, 10);
+                const nb = parseInt(b, 10);
+                if (!isNaN(na) && !isNaN(nb)) return na - nb;
+                return a.localeCompare(b);
+            })
+            .map((jam) => {
+                const items = groups[jam];
+                const totalTarget = items.reduce(
+                    (sum, item) => sum + Number(item.target || 0),
+                    0,
+                );
+                const totalRealisasi = items.reduce(
+                    (sum, item) => sum + Number(item.realisasi || 0),
+                    0,
+                );
+                const totalPersen =
+                    totalTarget > 0
+                        ? Math.round((totalRealisasi / totalTarget) * 100)
+                        : 0;
+
+                return {
+                    jam,
+                    items,
+                    totalTarget,
+                    totalRealisasi,
+                    totalPersen,
+                };
+            });
+    }, [rows]);
+
     function getSpkCount(spkText) {
         const raw = String(spkText || "").trim();
         if (!raw) return 0;
@@ -202,8 +246,8 @@ export default function MonitoringJobPage() {
         return 1;
     }
 
-    function renderSpkDetail(spkText, isMobileView = false) {
-        const spkNos = String(spkText || "")
+    function renderSpkDetail(r, isMobileView = false) {
+        const spkNos = String(r.spk || "")
             .split(",")
             .map((x) => x.trim().toUpperCase())
             .filter(Boolean);
@@ -216,16 +260,57 @@ export default function MonitoringJobPage() {
             );
         }
 
+        // JIKA HANYA ADA 1 SPK
+        if (spkNos.length === 1) {
+            const no = spkNos[0];
+            const spkInfo = spkMap[no];
+            const name = spkInfo?.nama || "-";
+            return (
+                <div>
+                    <div
+                        style={
+                            isMobileView
+                                ? styles.cardSpkName
+                                : styles.spkNameText
+                        }
+                    >
+                        {name}
+                    </div>
+                    <div
+                        style={
+                            isMobileView ? styles.cardSpkNo : styles.spkNoText
+                        }
+                    >
+                        No. SPK: {no}
+                    </div>
+                    <div
+                        style={{
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            color: "#4B5563",
+                            marginTop: "3px",
+                        }}
+                    >
+                        <span>Target: {r.target}</span>
+                    </div>
+                </div>
+            );
+        }
+
+        // JIKA ADA BEBERAPA SPK (MULTI)
         return (
             <div
                 style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: isMobileView ? "8px" : "6px",
+                    gap: isMobileView ? "10px" : "8px",
                 }}
             >
                 {spkNos.map((no, idx) => {
-                    const name = spkMap[no] || "-";
+                    const spkInfo = spkMap[no];
+                    const name = spkInfo?.nama || "-";
+                    const targetVal = spkInfo?.target || 0;
+
                     return (
                         <div
                             key={idx}
@@ -235,8 +320,8 @@ export default function MonitoringJobPage() {
                                         ? "1px dashed #E5E7EB"
                                         : "none",
                                 paddingBottom:
-                                    idx < spkNos.length - 1 ? "6px" : "0",
-                                marginTop: idx > 0 ? "4px" : "0",
+                                    idx < spkNos.length - 1 ? "8px" : "0",
+                                marginTop: idx > 0 ? "6px" : "0",
                             }}
                         >
                             <div
@@ -256,6 +341,16 @@ export default function MonitoringJobPage() {
                                 }
                             >
                                 No. SPK: {no}
+                            </div>
+                            <div
+                                style={{
+                                    fontSize: "11px",
+                                    fontWeight: 700,
+                                    color: "#4B5563",
+                                    marginTop: "3px",
+                                }}
+                            >
+                                Target: {targetVal}
                             </div>
                         </div>
                     );
@@ -319,7 +414,7 @@ export default function MonitoringJobPage() {
                                   : "#DC2626",
                     }}
                 >
-                    <div style={styles.avgLabel}>EFEKTIVITAS TOTAL</div>
+                    <div style={styles.avgLabel}>PRESENTASE CAPAIAN</div>
                     <div style={styles.avgValue}>{persen}%</div>
                 </div>
             </div>
@@ -418,9 +513,9 @@ export default function MonitoringJobPage() {
 
             {/* DATA SECTION */}
             {isMobile ? (
-                /* Tampilan Card khusus Mobile */
+                /* Tampilan Card khusus Mobile (Grouped By Jam) */
                 <div style={styles.cardList}>
-                    {rows.length === 0 ? (
+                    {groupedByJam.length === 0 ? (
                         <div style={styles.tdEmpty}>
                             Menunggu data produksi...
                         </div>
@@ -429,23 +524,20 @@ export default function MonitoringJobPage() {
                             style={{
                                 display: "flex",
                                 flexDirection: "column",
-                                gap: 12,
+                                gap: 16,
                             }}
                         >
-                            {rows.map((r, i) => (
-                                <div key={i} style={styles.mobileCard}>
-                                    <div style={styles.cardHeader}>
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                gap: 8,
-                                            }}
+                            {groupedByJam.map((g, gIdx) => (
+                                <div
+                                    key={gIdx}
+                                    style={styles.mobileJamGroupCard}
+                                >
+                                    <div style={styles.mobileJamGroupHeader}>
+                                        <span
+                                            style={styles.mobileJamGroupTitle}
                                         >
-                                            <span style={styles.cardJamBadge}>
-                                                Jam {r.jam}
-                                            </span>
-                                        </div>
+                                            JAM {g.jam}
+                                        </span>
                                         <div
                                             style={{
                                                 ...styles.percentBadge,
@@ -453,62 +545,109 @@ export default function MonitoringJobPage() {
                                                 fontSize: "12px",
                                                 minWidth: "auto",
                                                 background:
-                                                    r.persen >= 100
+                                                    g.totalPersen >= 100
                                                         ? "#DCFCE7"
-                                                        : r.persen >= 80
+                                                        : g.totalPersen >= 80
                                                           ? "#FFF7ED"
                                                           : "#FEE2E2",
                                                 color:
-                                                    r.persen >= 100
+                                                    g.totalPersen >= 100
                                                         ? "#166534"
-                                                        : r.persen >= 80
+                                                        : g.totalPersen >= 80
                                                           ? "#9A3412"
                                                           : "#991B1B",
                                             }}
                                         >
-                                            {r.persen}%
+                                            Capaian: {g.totalPersen}%
                                         </div>
                                     </div>
-                                    <div style={styles.cardBody}>
-                                        <div style={styles.cardSpkInfo}>
-                                            {renderSpkDetail(r.spk, true)}
-                                            <div style={styles.cardSpkMeta}>
-                                                MP: {r.mp} orang &nbsp;•&nbsp;
-                                                Total SPK: {getSpkCount(r.spk)}
-                                            </div>
-                                        </div>
-                                        <div style={styles.cardStatsGrid}>
+
+                                    <div
+                                        style={
+                                            styles.mobileJamGroupStatsSummary
+                                        }
+                                    >
+                                        <span>
+                                            Target Jam:{" "}
+                                            <strong>{g.totalTarget}</strong>
+                                        </span>
+                                        <span>
+                                            Realisasi Jam:{" "}
+                                            <strong>{g.totalRealisasi}</strong>
+                                        </span>
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 12,
+                                            marginTop: 8,
+                                        }}
+                                    >
+                                        {g.items.map((r, i) => (
                                             <div
-                                                style={styles.cardStatBoxTarget}
+                                                key={i}
+                                                style={styles.mobileJamItemRow}
                                             >
-                                                <span
-                                                    style={styles.cardStatLabel}
+                                                <div style={styles.cardSpkInfo}>
+                                                    {renderSpkDetail(r, true)}
+                                                    <div
+                                                        style={
+                                                            styles.cardSpkMeta
+                                                        }
+                                                    >
+                                                        MP: {r.mp} orang
+                                                        &nbsp;•&nbsp; Total SPK:{" "}
+                                                        {getSpkCount(r.spk)}
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    style={styles.cardStatsGrid}
                                                 >
-                                                    Target
-                                                </span>
-                                                <span
-                                                    style={styles.cardStatVal}
-                                                >
-                                                    {r.target}
-                                                </span>
+                                                    <div
+                                                        style={
+                                                            styles.cardStatBoxTarget
+                                                        }
+                                                    >
+                                                        <span
+                                                            style={
+                                                                styles.cardStatLabel
+                                                            }
+                                                        >
+                                                            Target
+                                                        </span>
+                                                        <span
+                                                            style={
+                                                                styles.cardStatVal
+                                                            }
+                                                        >
+                                                            {r.target}
+                                                        </span>
+                                                    </div>
+                                                    <div
+                                                        style={
+                                                            styles.cardStatBoxRealisasi
+                                                        }
+                                                    >
+                                                        <span
+                                                            style={
+                                                                styles.cardStatLabel
+                                                            }
+                                                        >
+                                                            Realisasi
+                                                        </span>
+                                                        <span
+                                                            style={
+                                                                styles.cardStatVal
+                                                            }
+                                                        >
+                                                            {r.realisasi}
+                                                        </span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div
-                                                style={
-                                                    styles.cardStatBoxRealisasi
-                                                }
-                                            >
-                                                <span
-                                                    style={styles.cardStatLabel}
-                                                >
-                                                    Realisasi
-                                                </span>
-                                                <span
-                                                    style={styles.cardStatVal}
-                                                >
-                                                    {r.realisasi}
-                                                </span>
-                                            </div>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
                             ))}
@@ -516,24 +655,22 @@ export default function MonitoringJobPage() {
                     )}
                 </div>
             ) : (
-                /* Tampilan Tabel untuk Tablet & Desktop */
+                /* Tampilan Tabel untuk Tablet & Desktop (Grouped By Jam) */
                 <div style={styles.tableWrap}>
                     <table style={styles.table}>
                         <thead>
                             <tr>
-                                <th style={{ ...styles.th, ...styles.colJam }}>
-                                    JAM
+                                <th style={{ ...styles.th, ...styles.colSpk }}>
+                                    DETAIL SPK
                                 </th>
                                 <th style={{ ...styles.th, ...styles.colMp }}>
-                                    Man Power
-                                </th>
-                                <th style={{ ...styles.th, ...styles.colSpk }}>
-                                    DETAIL SPK / BARANG
+                                    MAN POWER
                                 </th>
                                 <th
                                     style={{
                                         ...styles.thCenter,
                                         ...styles.colNum,
+                                        ...styles.thTarget,
                                     }}
                                 >
                                     TARGET
@@ -542,6 +679,7 @@ export default function MonitoringJobPage() {
                                     style={{
                                         ...styles.thCenter,
                                         ...styles.colNum,
+                                        ...styles.thRealisasi,
                                     }}
                                 >
                                     REALISASI
@@ -552,65 +690,119 @@ export default function MonitoringJobPage() {
                                         ...styles.colNum,
                                     }}
                                 >
-                                    CAPAIAN (%)
+                                    CAPAIAN
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.length === 0 ? (
+                            {groupedByJam.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} style={styles.tdEmpty}>
+                                    <td colSpan={5} style={styles.tdEmpty}>
                                         Menunggu data produksi...
                                     </td>
                                 </tr>
                             ) : (
-                                rows.map((r, i) => (
-                                    <tr
-                                        key={i}
-                                        style={
-                                            i % 2 === 0
-                                                ? styles.trEven
-                                                : styles.trOdd
-                                        }
-                                    >
-                                        <td style={styles.tdJam}>
-                                            {r.jam || ""}
-                                        </td>
-                                        <td style={styles.tdMp}>{r.mp}</td>
-                                        <td style={styles.tdSpk}>
-                                            {renderSpkDetail(r.spk, false)}
-                                            <div style={styles.spkMeta}>
-                                                Total SPK: {getSpkCount(r.spk)}
-                                            </div>
-                                        </td>
-                                        <td style={styles.tdTarget}>
-                                            {r.target}
-                                        </td>
-                                        <td style={styles.tdRealisasi}>
-                                            {r.realisasi}
-                                        </td>
-                                        <td style={styles.tdCenter}>
-                                            <div
+                                groupedByJam.map((g, gIdx) => (
+                                    <Fragment key={gIdx}>
+                                        {/* Jam Group Header Row */}
+                                        <tr>
+                                            <td
+                                                colSpan={5}
+                                                style={styles.tdJamHeader}
+                                            >
+                                                <div
+                                                    style={
+                                                        styles.jamHeaderInner
+                                                    }
+                                                >
+                                                    <span
+                                                        style={
+                                                            styles.jamHeaderLabel
+                                                        }
+                                                    >
+                                                        JAM {g.jam}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {/* Jam Data Rows */}
+                                        {g.items.map((r, i) => (
+                                            <tr
+                                                key={`${gIdx}-${i}`}
                                                 style={{
-                                                    ...styles.percentBadge,
-                                                    background:
-                                                        r.persen >= 100
-                                                            ? "#DCFCE7"
-                                                            : r.persen >= 80
-                                                              ? "#FFF7ED"
-                                                              : "#FEE2E2",
-                                                    color:
-                                                        r.persen >= 100
-                                                            ? "#166534"
-                                                            : r.persen >= 80
-                                                              ? "#9A3412"
-                                                              : "#991B1B",
+                                                    ...(i % 2 === 0
+                                                        ? styles.trEven
+                                                        : styles.trOdd),
                                                 }}
                                             >
-                                                {r.persen}%
-                                            </div>
-                                        </td>
-                                    </tr>
+                                                <td style={styles.tdSpk}>
+                                                    {renderSpkDetail(r, false)}
+                                                    <div style={styles.spkMeta}>
+                                                        Total SPK:{" "}
+                                                        {getSpkCount(r.spk)}
+                                                    </div>
+                                                </td>
+                                                <td style={styles.tdMp}>
+                                                    <div style={styles.mpBadge}>
+                                                        {r.mp}
+                                                    </div>
+                                                    <div style={styles.mpLabel}>
+                                                        orang
+                                                    </div>
+                                                </td>
+                                                <td style={styles.tdTarget}>
+                                                    {r.target}
+                                                </td>
+                                                <td style={styles.tdRealisasi}>
+                                                    {r.realisasi}
+                                                </td>
+                                                <td style={styles.tdCenter}>
+                                                    <div
+                                                        style={{
+                                                            ...styles.percentBadge,
+                                                            background:
+                                                                r.persen >= 100
+                                                                    ? "#DCFCE7"
+                                                                    : r.persen >=
+                                                                        80
+                                                                      ? "#FFF7ED"
+                                                                      : "#FEE2E2",
+                                                            color:
+                                                                r.persen >= 100
+                                                                    ? "#166534"
+                                                                    : r.persen >=
+                                                                        80
+                                                                      ? "#9A3412"
+                                                                      : "#991B1B",
+                                                        }}
+                                                    >
+                                                        {r.persen}%
+                                                    </div>
+                                                    {/* Mini Progress Bar */}
+                                                    <div
+                                                        style={
+                                                            styles.progressBarWrap
+                                                        }
+                                                    >
+                                                        <div
+                                                            style={{
+                                                                ...styles.progressBarFill,
+                                                                width: `${Math.min(r.persen, 100)}%`,
+                                                                background:
+                                                                    r.persen >=
+                                                                    100
+                                                                        ? "#16a34a"
+                                                                        : r.persen >=
+                                                                            80
+                                                                          ? "#ea580c"
+                                                                          : "#dc2626",
+                                                            }}
+                                                        />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </Fragment>
                                 ))
                             )}
                         </tbody>
@@ -688,7 +880,7 @@ const styles = {
         padding: "0 12px",
         fontSize: "14px",
         outline: "none",
-        fontFamily: "inherit",
+        fontFamily: "'Readex Pro', sans-serif",
     },
     select: {
         height: "40px",
@@ -697,6 +889,7 @@ const styles = {
         padding: "0 12px",
         outline: "none",
         cursor: "pointer",
+        fontFamily: "'Readex Pro', sans-serif",
     },
 
     tableWrap: {
@@ -710,64 +903,121 @@ const styles = {
     table: {
         width: "100%",
         borderCollapse: "collapse",
-        minWidth: "700px",
+        minWidth: "750px",
     },
-    colJam: { width: "12%" },
-    colMp: { width: "10%" },
-    colSpk: { width: "42%" },
+    colJam: { width: "8%" },
+    colMp: { width: "9%", textAlign: "center" },
+    colSpk: { width: "38%" },
     colNum: { width: "12%" },
     th: {
         textAlign: "left",
-        padding: "16px 24px",
+        padding: "12px 16px",
         background: "#F9FAFB",
-        fontSize: "12px",
+        border: "1px solid #E5E7EB",
+        fontSize: "11px",
         fontWeight: 800,
         color: "#4B5563",
         textTransform: "uppercase",
-        borderBottom: "2px solid #E5E7EB",
+        verticalAlign: "middle",
     },
     thCenter: {
         textAlign: "center",
-        padding: "16px 24px",
+        padding: "12px 16px",
         background: "#F9FAFB",
-        fontSize: "12px",
+        border: "1px solid #E5E7EB",
+        fontSize: "11px",
         fontWeight: 800,
         color: "#4B5563",
         textTransform: "uppercase",
-        borderBottom: "2px solid #E5E7EB",
+    },
+    thTarget: {
+        padding: "10px 16px",
+        background: "#FFF7ED",
+        border: "1px solid #E5E7EB",
+        fontSize: "11px",
+        color: "#B34E33",
+        fontWeight: 800,
+        textAlign: "center",
+    },
+    thRealisasi: {
+        padding: "10px 16px",
+        background: "#FFF7ED",
+        border: "1px solid #E5E7EB",
+        fontSize: "11px",
+        color: "#B34E33",
+        fontWeight: 800,
+        textAlign: "center",
     },
 
-    td: { padding: "16px 24px", borderBottom: "1px solid #F3F4F6" },
+    td: { padding: "12px 16px", borderBottom: "1px solid #F3F4F6" },
     tdJam: {
-        padding: "16px 24px",
+        padding: "12px 16px",
         borderBottom: "1px solid #F3F4F6",
         fontWeight: 800,
         color: "#1E40AF",
         background: "#F0F7FF",
         fontSize: "15px",
     },
+    /* Kolom JAM dengan rowSpan */
+    tdJamCell: {
+        padding: "0",
+        textAlign: "center",
+        verticalAlign: "middle",
+        background: "#F0F7FF",
+        borderRight: "1px solid #DBEAFE",
+        borderBottom: "1px solid #F3F4F6",
+        width: "8%",
+    },
+    tdJamCellInner: {
+        fontWeight: 800,
+        fontSize: "15px",
+        color: "#1E40AF",
+        fontFamily: "'Inter', sans-serif",
+        letterSpacing: "0",
+        lineHeight: 1,
+    },
     tdMp: {
-        padding: "16px 24px",
+        padding: "14px 12px",
         borderBottom: "1px solid #F3F4F6",
         textAlign: "center",
+        verticalAlign: "middle",
         fontWeight: 700,
-        fontSize: "16px",
+        fontSize: "14px",
+        color: "#374151",
+    },
+    mpBadge: {
+        fontSize: "15px",
+        fontWeight: 700,
+        color: "#374151",
+        fontFamily: "'Inter', sans-serif",
+        lineHeight: 1,
+    },
+    mpLabel: {
+        fontSize: "10px",
+        color: "#9CA3AF",
+        fontWeight: 600,
+        textTransform: "uppercase",
+        marginTop: "2px",
     },
     tdSpk: {
-        padding: "16px 24px",
+        padding: "12px 16px",
         borderBottom: "1px solid #F3F4F6",
         whiteSpace: "pre-line",
         fontSize: "14px",
         fontWeight: 500,
         color: "#374151",
+        verticalAlign: "middle",
     },
     spkMeta: {
         marginTop: "6px",
-        fontSize: "11px",
+        fontSize: "10px",
         fontWeight: 700,
-        color: "#6B7280",
+        color: "#9CA3AF",
         textTransform: "uppercase",
-        letterSpacing: "0.04em",
+        letterSpacing: "0.05em",
+        fontFamily: "'Inter', sans-serif",
+        borderTop: "1px dashed #E5E7EB",
+        paddingTop: "4px",
     },
     spkNameText: {
         fontSize: "14px",
@@ -776,43 +1026,48 @@ const styles = {
     },
     spkNoText: {
         fontSize: "12px",
-        color: "#4B5563",
+        color: "#6B7280",
         fontWeight: 600,
         marginTop: "2px",
+        fontFamily: "'Inter', sans-serif",
     },
     tdTarget: {
-        padding: "16px 24px",
+        padding: "14px 16px",
+        borderBottom: "1px solid #F3F4F6",
+        textAlign: "center",
+        fontWeight: 700,
+        color: "#4B5563",
+        background: "#F9FAFB",
+        verticalAlign: "middle",
+    },
+    tdRealisasi: {
+        padding: "14px 16px",
         borderBottom: "1px solid #F3F4F6",
         textAlign: "center",
         fontSize: "16px",
-        fontWeight: 600,
-        color: "#6B7280",
-    },
-    tdRealisasi: {
-        padding: "16px 24px",
-        borderBottom: "1px solid #F3F4F6",
-        textAlign: "center",
-        fontSize: "18px",
         fontWeight: 800,
-        color: "#111827",
+        color: "#B34E33",
         fontFamily: "'Inter', sans-serif",
+        verticalAlign: "middle",
     },
     tdCenter: {
-        padding: "16px 24px",
+        padding: "14px 16px",
         borderBottom: "1px solid #F3F4F6",
         textAlign: "center",
         fontSize: "14px",
         color: "#374151",
+        verticalAlign: "middle",
     },
 
     percentBadge: {
-        padding: "6px 12px",
-        borderRadius: "10px",
-        fontSize: "15px",
+        padding: "5px 10px",
+        borderRadius: "8px",
+        fontSize: "13px",
         fontWeight: 800,
         textAlign: "center",
         display: "inline-block",
-        minWidth: "60px",
+        minWidth: "54px",
+        fontFamily: "'Inter', sans-serif",
     },
 
     trEven: { background: "#FFFFFF" },
@@ -848,6 +1103,8 @@ const styles = {
         color: "#374151",
         fontWeight: 700,
         cursor: "pointer",
+        transition: "all 0.2s ease",
+        fontFamily: "'Readex Pro', sans-serif",
     },
     errorBox: {
         marginBottom: "14px",
@@ -912,6 +1169,7 @@ const styles = {
         color: "#4B5563",
         fontWeight: 600,
         marginTop: "1px",
+        fontFamily: "'Inter', sans-serif",
     },
     cardSpkMeta: {
         fontSize: "11px",
@@ -952,5 +1210,90 @@ const styles = {
     cardStatVal: {
         fontSize: "16px",
         fontWeight: 800,
+        fontFamily: "'Inter', sans-serif",
+    },
+
+    /* --- Desktop Table Header Jam --- */
+    tdJamHeader: {
+        padding: "10px 16px",
+        background: "#EFF6FF",
+        borderTop: "2px solid #DBEAFE",
+        borderBottom: "2px solid #DBEAFE",
+        fontSize: "13px",
+        fontWeight: 800,
+        color: "#1E40AF",
+    },
+    jamHeaderInner: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    jamHeaderLabel: {
+        fontSize: "13px",
+        fontWeight: 800,
+        color: "#1E40AF",
+    },
+    jamHeaderBadges: {
+        display: "flex",
+        gap: "8px",
+        alignItems: "center",
+        fontSize: "11px",
+        fontWeight: 800,
+    },
+    jamBadgeTarget: {
+        fontSize: "11px",
+        fontWeight: 800,
+    },
+    jamBadgeRealisasi: {
+        fontSize: "11px",
+        fontWeight: 800,
+    },
+    jamBadgeCapaian: {
+        fontSize: "11px",
+        fontWeight: 800,
+        padding: "2px 8px",
+        borderRadius: "6px",
+    },
+
+    /* --- Mobile Group Jam Card Styles --- */
+    mobileJamGroupCard: {
+        background: "#ffffff",
+        border: "1px solid #E5E7EB",
+        borderRadius: "16px",
+        padding: "16px",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    mobileJamGroupHeader: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        borderBottom: "2px solid #EFF6FF",
+        paddingBottom: "8px",
+    },
+    mobileJamGroupTitle: {
+        fontSize: "14px",
+        fontWeight: 800,
+        color: "#1E40AF",
+    },
+    mobileJamGroupStatsSummary: {
+        display: "flex",
+        justifyContent: "space-between",
+        fontSize: "11px",
+        color: "#4B5563",
+        fontWeight: 600,
+        background: "#F3F4F6",
+        padding: "6px 12px",
+        borderRadius: "8px",
+    },
+    mobileJamItemRow: {
+        borderBottom: "1px solid #F3F4F6",
+        paddingBottom: "12px",
+        marginBottom: "4px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "8px",
     },
 };
