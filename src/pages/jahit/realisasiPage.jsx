@@ -165,8 +165,14 @@ export default function RealisasiJobPage() {
             })
             .map((jam) => {
                 const items = groups[jam];
-                const totalTarget = items.reduce((sum, item) => sum + Number(item.mr_target || 0), 0);
-                const totalRealisasi = items.reduce((sum, item) => sum + Number(item.mr_realisasi || 0), 0);
+                const totalTarget = items.reduce(
+                    (sum, item) => sum + Number(item.mr_target || 0),
+                    0,
+                );
+                const totalRealisasi = items.reduce(
+                    (sum, item) => sum + Number(item.mr_realisasi || 0),
+                    0,
+                );
                 return {
                     jam,
                     items,
@@ -427,18 +433,22 @@ export default function RealisasiJobPage() {
     }, [openForm, form.tanggal, form.lini, form.kelompok]);
 
     return (
-        <div style={{
-            ...styles.page,
-            padding: isMobile ? "12px" : "32px 20px",
-        }}>
+        <div
+            style={{
+                ...styles.page,
+                padding: isMobile ? "12px" : "32px 20px",
+            }}
+        >
             {/* HEADER */}
-            <div style={{
-                ...styles.header,
-                flexDirection: isMobile ? "column" : "row",
-                alignItems: isMobile ? "stretch" : "center",
-                gap: isMobile ? "16px" : "12px",
-                padding: isMobile ? "16px" : "20px 24px",
-            }}>
+            <div
+                style={{
+                    ...styles.header,
+                    flexDirection: isMobile ? "column" : "row",
+                    alignItems: isMobile ? "stretch" : "center",
+                    gap: isMobile ? "16px" : "12px",
+                    padding: isMobile ? "16px" : "20px 24px",
+                }}
+            >
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <button
                         style={styles.btnBack}
@@ -452,12 +462,14 @@ export default function RealisasiJobPage() {
                         <div style={styles.sub}>{userLabel}</div>
                     </div>
                 </div>
-                <div style={{
-                    display: "flex",
-                    gap: 8,
-                    width: isMobile ? "100%" : "auto",
-                    justifyContent: isMobile ? "stretch" : "flex-end"
-                }}>
+                <div
+                    style={{
+                        display: "flex",
+                        gap: 8,
+                        width: isMobile ? "100%" : "auto",
+                        justifyContent: isMobile ? "stretch" : "flex-end",
+                    }}
+                >
                     <button
                         style={{
                             ...styles.btnSecondary,
@@ -493,18 +505,24 @@ export default function RealisasiJobPage() {
             </div>
 
             {/* FILTERS PANEL */}
-            <div style={{
-                ...styles.filters,
-                flexDirection: isMobile ? "column" : "row",
-                alignItems: isMobile ? "stretch" : "end",
-                gap: isMobile ? 16 : 12,
-                padding: isMobile ? "16px" : "16px 20px",
-            }}>
+            <div
+                style={{
+                    ...styles.filters,
+                    flexDirection: isMobile ? "column" : "row",
+                    alignItems: isMobile ? "stretch" : "end",
+                    gap: isMobile ? 16 : 12,
+                    padding: isMobile ? "16px" : "16px 20px",
+                }}
+            >
                 <div style={{ ...styles.filterGroup, width: "100%" }}>
                     <label style={styles.label}>Tanggal</label>
                     <input
                         type="date"
-                        style={{ ...styles.input, width: "100%", boxSizing: "border-box" }}
+                        style={{
+                            ...styles.input,
+                            width: "100%",
+                            boxSizing: "border-box",
+                        }}
                         value={tanggal}
                         onChange={(e) => setTanggal(e.target.value)}
                     />
@@ -515,7 +533,12 @@ export default function RealisasiJobPage() {
                         <div style={{ ...styles.filterGroup, width: "100%" }}>
                             <label style={styles.label}>Lini Produksi</label>
                             <select
-                                style={{ ...styles.select, width: "100%", boxSizing: "border-box", height: 40 }}
+                                style={{
+                                    ...styles.select,
+                                    width: "100%",
+                                    boxSizing: "border-box",
+                                    height: 40,
+                                }}
                                 value={lini}
                                 onChange={(e) => setLini(e.target.value)}
                             >
@@ -527,7 +550,12 @@ export default function RealisasiJobPage() {
                         <div style={{ ...styles.filterGroup, width: "100%" }}>
                             <label style={styles.label}>Kelompok</label>
                             <select
-                                style={{ ...styles.select, width: "100%", boxSizing: "border-box", height: 40 }}
+                                style={{
+                                    ...styles.select,
+                                    width: "100%",
+                                    boxSizing: "border-box",
+                                    height: 40,
+                                }}
                                 value={kelompok}
                                 onChange={(e) => setKelompok(e.target.value)}
                             >
@@ -563,53 +591,192 @@ export default function RealisasiJobPage() {
                 /* Tampilan Card untuk Mobile */
                 <div style={styles.cardList}>
                     {loading ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 12,
+                            }}
+                        >
                             {[1, 2, 3].map((n) => (
                                 <div key={n} style={styles.mobileCard}>
-                                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-                                        <div className="skeleton" style={{ width: "100px", height: "20px", borderRadius: "4px" }} />
-                                        <div className="skeleton" style={{ width: "60px", height: "16px", borderRadius: "4px" }} />
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            marginBottom: 12,
+                                        }}
+                                    >
+                                        <div
+                                            className="skeleton"
+                                            style={{
+                                                width: "100px",
+                                                height: "20px",
+                                                borderRadius: "4px",
+                                            }}
+                                        />
+                                        <div
+                                            className="skeleton"
+                                            style={{
+                                                width: "60px",
+                                                height: "16px",
+                                                borderRadius: "4px",
+                                            }}
+                                        />
                                     </div>
-                                    <div className="skeleton" style={{ width: "100%", height: "24px", borderRadius: "4px", marginBottom: 8 }} />
+                                    <div
+                                        className="skeleton"
+                                        style={{
+                                            width: "100%",
+                                            height: "24px",
+                                            borderRadius: "4px",
+                                            marginBottom: 8,
+                                        }}
+                                    />
                                     <div style={{ display: "flex", gap: 8 }}>
-                                        <div className="skeleton" style={{ flex: 1, height: "32px", borderRadius: "8px" }} />
-                                        <div className="skeleton" style={{ flex: 1, height: "32px", borderRadius: "8px" }} />
+                                        <div
+                                            className="skeleton"
+                                            style={{
+                                                flex: 1,
+                                                height: "32px",
+                                                borderRadius: "8px",
+                                            }}
+                                        />
+                                        <div
+                                            className="skeleton"
+                                            style={{
+                                                flex: 1,
+                                                height: "32px",
+                                                borderRadius: "8px",
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : groupedByJam.length === 0 ? (
-                        <div style={styles.empty}>Tidak ada data realisasi di kelompok ini</div>
+                        <div style={styles.empty}>
+                            Tidak ada data realisasi di kelompok ini
+                        </div>
                     ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 16,
+                            }}
+                        >
                             {groupedByJam.map((g, idx) => (
                                 <div key={idx} style={styles.mobileCard}>
                                     <div style={styles.cardHeader}>
-                                        <span style={styles.cardJamBadge}>Jam {g.jam}</span>
-                                        <span style={{ fontSize: "11px", color: "#2563EB", fontWeight: 800, background: "#EFF6FF", padding: "4px 8px", borderRadius: "6px" }}>
-                                            T: {g.totalTarget} • R: {g.totalRealisasi}
+                                        <span style={styles.cardJamBadge}>
+                                            Jam {g.jam}
+                                        </span>
+                                        <span
+                                            style={{
+                                                fontSize: "11px",
+                                                color: "#2563EB",
+                                                fontWeight: 800,
+                                                background: "#EFF6FF",
+                                                padding: "4px 8px",
+                                                borderRadius: "6px",
+                                            }}
+                                        >
+                                            Target: {g.totalTarget} • Realisasi:{" "}
+                                            {g.totalRealisasi}
                                         </span>
                                     </div>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 12,
+                                        }}
+                                    >
                                         {g.items.map((d, i) => (
-                                            <div key={i} style={{
-                                                paddingTop: i > 0 ? 12 : 0,
-                                                borderTop: i > 0 ? "1px solid #F3F4F6" : "none",
-                                            }}>
-                                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 6 }}>
-                                                    <div style={styles.cardSpkInfo}>
-                                                        <div style={styles.cardSpkName}>{d.spk_nama}</div>
-                                                        <div style={styles.cardSpkDate}>{d.lini} • {d.kelompok}</div>
+                                            <div
+                                                key={i}
+                                                style={{
+                                                    paddingTop: i > 0 ? 12 : 0,
+                                                    borderTop:
+                                                        i > 0
+                                                            ? "1px solid #F3F4F6"
+                                                            : "none",
+                                                }}
+                                            >
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        justifyContent:
+                                                            "space-between",
+                                                        alignItems: "start",
+                                                        marginBottom: 6,
+                                                    }}
+                                                >
+                                                    <div
+                                                        style={
+                                                            styles.cardSpkInfo
+                                                        }
+                                                    >
+                                                        <div
+                                                            style={
+                                                                styles.cardSpkName
+                                                            }
+                                                        >
+                                                            {d.spk_nama}
+                                                        </div>
+                                                        <div
+                                                            style={
+                                                                styles.cardSpkDate
+                                                            }
+                                                        >
+                                                            {d.lini} •{" "}
+                                                            {d.kelompok}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div style={styles.cardStatsGrid}>
-                                                    <div style={styles.cardStatBoxTarget}>
-                                                        <span style={styles.cardStatLabel}>Target</span>
-                                                        <span style={styles.cardStatVal}>{d.mr_target}</span>
+                                                <div
+                                                    style={styles.cardStatsGrid}
+                                                >
+                                                    <div
+                                                        style={
+                                                            styles.cardStatBoxTarget
+                                                        }
+                                                    >
+                                                        <span
+                                                            style={
+                                                                styles.cardStatLabel
+                                                            }
+                                                        >
+                                                            Target
+                                                        </span>
+                                                        <span
+                                                            style={
+                                                                styles.cardStatVal
+                                                            }
+                                                        >
+                                                            {d.mr_target}
+                                                        </span>
                                                     </div>
-                                                    <div style={styles.cardStatBoxRealisasi}>
-                                                        <span style={styles.cardStatLabel}>Realisasi</span>
-                                                        <span style={styles.cardStatVal}>{d.mr_realisasi}</span>
+                                                    <div
+                                                        style={
+                                                            styles.cardStatBoxRealisasi
+                                                        }
+                                                    >
+                                                        <span
+                                                            style={
+                                                                styles.cardStatLabel
+                                                            }
+                                                        >
+                                                            Realisasi
+                                                        </span>
+                                                        <span
+                                                            style={
+                                                                styles.cardStatVal
+                                                            }
+                                                        >
+                                                            {d.mr_realisasi}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -626,7 +793,9 @@ export default function RealisasiJobPage() {
                     <table style={styles.table}>
                         <thead>
                             <tr>
-                                <th style={styles.th}>Identitas Barang / SPK</th>
+                                <th style={styles.th}>
+                                    Identitas Barang / SPK
+                                </th>
                                 <th style={styles.thHighlight}>Target</th>
                                 <th style={styles.thHighlight}>Realisasi</th>
                                 <th style={styles.thCenter}>Kelompok</th>
@@ -647,11 +816,36 @@ export default function RealisasiJobPage() {
                                     <Fragment key={gIdx}>
                                         {/* Baris Pemisah Jam */}
                                         <tr>
-                                            <td colSpan={5} style={styles.tdJamHeader}>
-                                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                                    <span style={{ fontWeight: 800 }}>⏰ JAM {g.jam}</span>
-                                                    <span style={{ fontSize: "11px", fontWeight: 800 }}>
-                                                        TOTAL TARGET: {g.totalTarget} &nbsp;•&nbsp; TOTAL REALISASI: {g.totalRealisasi}
+                                            <td
+                                                colSpan={5}
+                                                style={styles.tdJamHeader}
+                                            >
+                                                <div
+                                                    style={{
+                                                        display: "flex",
+                                                        justifyContent:
+                                                            "space-between",
+                                                        alignItems: "center",
+                                                    }}
+                                                >
+                                                    <span
+                                                        style={{
+                                                            fontWeight: 800,
+                                                        }}
+                                                    >
+                                                        JAM {g.jam}
+                                                    </span>
+                                                    <span
+                                                        style={{
+                                                            fontSize: "11px",
+                                                            fontWeight: 800,
+                                                        }}
+                                                    >
+                                                        TOTAL TARGET:{" "}
+                                                        {g.totalTarget}{" "}
+                                                        &nbsp;•&nbsp; TOTAL
+                                                        REALISASI:{" "}
+                                                        {g.totalRealisasi}
                                                     </span>
                                                 </div>
                                             </td>
@@ -682,7 +876,9 @@ export default function RealisasiJobPage() {
                                                 <td style={styles.tdCenter}>
                                                     {d.kelompok}
                                                 </td>
-                                                <td style={styles.tdCenter}>{d.lini}</td>
+                                                <td style={styles.tdCenter}>
+                                                    {d.lini}
+                                                </td>
                                             </tr>
                                         ))}
                                     </Fragment>
@@ -747,15 +943,23 @@ export default function RealisasiJobPage() {
                         </div>
 
                         <form onSubmit={onSave}>
-                            <div style={{
-                                ...styles.formGrid,
-                                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
-                            }}>
+                            <div
+                                style={{
+                                    ...styles.formGrid,
+                                    gridTemplateColumns: isMobile
+                                        ? "1fr"
+                                        : "1fr 1fr",
+                                }}
+                            >
                                 <div style={styles.formGroup}>
                                     <label style={styles.label}>Tanggal</label>
                                     <input
                                         type="date"
-                                        style={{ ...styles.input, width: "100%", boxSizing: "border-box" }}
+                                        style={{
+                                            ...styles.input,
+                                            width: "100%",
+                                            boxSizing: "border-box",
+                                        }}
                                         value={form.tanggal}
                                         onChange={(e) =>
                                             setForm((p) => ({
@@ -771,7 +975,12 @@ export default function RealisasiJobPage() {
                                         Lini Produksi
                                     </label>
                                     <select
-                                        style={{ ...styles.select, width: "100%", boxSizing: "border-box", height: 40 }}
+                                        style={{
+                                            ...styles.select,
+                                            width: "100%",
+                                            boxSizing: "border-box",
+                                            height: 40,
+                                        }}
                                         value={form.lini}
                                         onChange={(e) =>
                                             setForm((p) => ({
@@ -792,7 +1001,12 @@ export default function RealisasiJobPage() {
                                 <div style={styles.formGroup}>
                                     <label style={styles.label}>Kelompok</label>
                                     <select
-                                        style={{ ...styles.select, width: "100%", boxSizing: "border-box", height: 40 }}
+                                        style={{
+                                            ...styles.select,
+                                            width: "100%",
+                                            boxSizing: "border-box",
+                                            height: 40,
+                                        }}
                                         value={form.kelompok}
                                         onChange={(e) =>
                                             setForm((p) => ({
@@ -820,7 +1034,12 @@ export default function RealisasiJobPage() {
                                         Jam Produksi
                                     </label>
                                     <select
-                                        style={{ ...styles.select, width: "100%", boxSizing: "border-box", height: 40 }}
+                                        style={{
+                                            ...styles.select,
+                                            width: "100%",
+                                            boxSizing: "border-box",
+                                            height: 40,
+                                        }}
                                         value={form.jam}
                                         onChange={(e) =>
                                             setForm((p) => ({
@@ -846,18 +1065,26 @@ export default function RealisasiJobPage() {
                                 </div>
 
                                 {/* Nomor SPK Field dengan Style Baru */}
-                                <div style={{
-                                    ...styles.formGroupFull,
-                                    gridColumn: isMobile ? "span 1" : "span 2",
-                                }}>
+                                <div
+                                    style={{
+                                        ...styles.formGroupFull,
+                                        gridColumn: isMobile
+                                            ? "span 1"
+                                            : "span 2",
+                                    }}
+                                >
                                     <label style={styles.label}>
                                         Nomor SPK
                                     </label>
-                                    <div style={{
-                                        ...styles.inputWithButton,
-                                        flexDirection: isMobile ? "column" : "row",
-                                        gap: isMobile ? "8px" : "4px",
-                                    }}>
+                                    <div
+                                        style={{
+                                            ...styles.inputWithButton,
+                                            flexDirection: isMobile
+                                                ? "column"
+                                                : "row",
+                                            gap: isMobile ? "8px" : "4px",
+                                        }}
+                                    >
                                         <input
                                             style={{
                                                 ...styles.input,
@@ -875,12 +1102,16 @@ export default function RealisasiJobPage() {
                                             }
                                             placeholder="Contoh: JA-KO-001"
                                         />
-                                        <div style={{
-                                            display: "flex",
-                                            gap: "4px",
-                                            width: isMobile ? "100%" : "auto",
-                                            height: "42px",
-                                        }}>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                gap: "4px",
+                                                width: isMobile
+                                                    ? "100%"
+                                                    : "auto",
+                                                height: "42px",
+                                            }}
+                                        >
                                             <button
                                                 type="button"
                                                 style={{
@@ -897,11 +1128,15 @@ export default function RealisasiJobPage() {
                                                 type="button"
                                                 style={{
                                                     ...styles.btnCariSpk,
-                                                    width: isMobile ? "60px" : "50px",
+                                                    width: isMobile
+                                                        ? "60px"
+                                                        : "50px",
                                                     height: "100%",
                                                 }}
                                                 onClick={onCariSpk}
-                                                disabled={searchingSpk || !form.spk}
+                                                disabled={
+                                                    searchingSpk || !form.spk
+                                                }
                                                 title="Klik untuk validasi SPK"
                                             >
                                                 {searchingSpk ? (
@@ -1111,7 +1346,7 @@ export default function RealisasiJobPage() {
                                         ))
                                     )}
                                 </tbody>
-                                </table>
+                            </table>
                         </div>
                     </div>
                 </div>

@@ -155,3 +155,54 @@ const styles = {
     },
 };
 ```
+
+---
+
+## 5. Standar Responsivitas Halaman (Responsive Design Rules)
+
+Seluruh halaman yang telah ada maupun yang akan dibuat di masa mendatang **wajib sepenuhnya responsif** mengikuti ukuran perangkat **Mobile, Tablet, dan Desktop** guna menjamin kenyamanan akses saat aplikasi dibungkus di dalam WebView Android Studio maupun dibuka via browser.
+
+### 5.1 Mekanisme Deteksi Ukuran Layar di React
+Gunakan state dinamis `windowWidth` dan variabel pembantu `isMobile` di dalam komponen React untuk mendeteksi perubahan lebar layar secara real-time:
+```jsx
+const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+const isMobile = windowWidth <= 600;
+
+useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+}, []);
+```
+
+### 5.2 Panduan Layout per Device Class
+
+#### A. Perangkat Mobile (Lebar Layar ≤ 600px)
+* **Header Halaman:** Elemen judul, sub-judul, tombol navigasi kembali, dan widget indikator/skor wajib ditumpuk secara vertikal (`flexDirection: "column"`, `alignItems: "stretch"`) dengan lebar penuh `100%`.
+* **Filter Pencarian:** Susun kolom input filter dan tombol aksi/refresh secara vertikal dengan padding dan gap yang seimbang.
+* **Transformasi Visual Data (Card List):** **Dilarang keras** memaksa tabel multi-kolom tampil utuh di layar HP. Konversikan tabel tersebut menjadi susunan **Card List** yang memuat:
+  * Badge informasi waktu/status di bagian atas.
+  * Ringkasan statistik utama target vs realisasi dalam bentuk grid mini ($2$ kolom).
+  * Data terstruktur yang dipisahkan oleh garis tipis abu-abu (`1px solid #F3F4F6`).
+* **Touch Target & Spacing:** Tinggi tombol interaktif minimal `40px` - `44px` agar mudah ditekan oleh jempol. Padding halaman dipersempit menjadi `12px` untuk memaksimalkan ruang konten.
+
+#### B. Perangkat Tablet (Lebar Layar 601px - 1024px)
+* **Scroll Horizontal Tabel:** Tabel dapat disajikan utuh tetapi **wajib** dibungkus di dalam kontainer scroll horizontal agar layout tidak hancur atau terpotong:
+  ```jsx
+  tableWrap: {
+      overflowX: "auto",
+      WebkitOverflowScrolling: "touch", // scroll halus di iOS/Android WebView
+  }
+  ```
+* **Lebar Minimal Tabel:** Berikan properti `minWidth: "650px"` atau lebih pada elemen `table` agar data kolom memiliki ruang yang cukup dan tidak saling menumpuk.
+
+#### C. Perangkat Desktop (Lebar Layar > 1024px)
+* **Maksimum Lebar Halaman:** Batasi area konten halaman utama maksimal `1200px` dan posisikan di tengah layar menggunakan margin otomatis untuk menjaga keseimbangan visual:
+  ```jsx
+  page: {
+      maxWidth: "1200px",
+      margin: "0 auto",
+  }
+  ```
+* **Layout Grid Filter:** Baris filter dan tombol disajikan secara horizontal sejajar (`flexDirection: "row"`, `alignItems: "end"`).
+

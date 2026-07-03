@@ -5,6 +5,7 @@ import {
     getMonitoringKelompok,
     getMonitoringLini,
 } from "../../services/monitoringJob.service";
+import { getSpkTargets } from "../../services/spkTarget.service";
 import { loadUser } from "../../utils/storage";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authProvider";
@@ -12,6 +13,15 @@ import { MdArrowBack } from "react-icons/md";
 
 export default function MonitoringJobPage() {
     const navigate = useNavigate();
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    const isMobile = windowWidth <= 600;
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
     const { user: authUser } = useAuth();
     const localUser = useMemo(() => loadUser(), []);
     const user = authUser || localUser;
@@ -41,18 +51,37 @@ export default function MonitoringJobPage() {
     const [persen, setAvg] = useState(0);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
+    const [spkMap, setSpkMap] = useState({});
 
     async function loadMonitoring() {
         if (!userCab || !lini || !kelompok || !tanggal) return;
         try {
             setLoading(true);
             setErrorMsg("");
-            const res = await getMonitoring({
-                cab: userCab,
-                tanggal,
-                lini,
-                kelompok,
-            });
+            const [res, spkRes] = await Promise.all([
+                getMonitoring({
+                    cab: userCab,
+                    tanggal,
+                    lini,
+                    kelompok,
+                }),
+                getSpkTargets(userCab, lini).catch((err) => {
+                    console.error("Gagal load spk targets", err);
+                    return { ok: false };
+                }),
+            ]);
+
+            // Bangun map nomor SPK -> nama SPK
+            const newSpkMap = {};
+            if (spkRes?.ok && Array.isArray(spkRes.data)) {
+                spkRes.data.forEach((item) => {
+                    if (item.nomor) {
+                        newSpkMap[String(item.nomor).trim().toUpperCase()] =
+                            item.nama || "";
+                    }
+                });
+            }
+            setSpkMap(newSpkMap);
 
             if (res.ok) {
                 const monitorData = res.data || {};
@@ -173,10 +202,85 @@ export default function MonitoringJobPage() {
         return 1;
     }
 
+    function renderSpkDetail(spkText, isMobileView = false) {
+        const spkNos = String(spkText || "")
+            .split(",")
+            .map((x) => x.trim().toUpperCase())
+            .filter(Boolean);
+
+        if (spkNos.length === 0) {
+            return (
+                <div style={{ color: "#9CA3AF", fontStyle: "italic" }}>
+                    Tidak ada SPK
+                </div>
+            );
+        }
+
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: isMobileView ? "8px" : "6px",
+                }}
+            >
+                {spkNos.map((no, idx) => {
+                    const name = spkMap[no] || "-";
+                    return (
+                        <div
+                            key={idx}
+                            style={{
+                                borderBottom:
+                                    idx < spkNos.length - 1
+                                        ? "1px dashed #E5E7EB"
+                                        : "none",
+                                paddingBottom:
+                                    idx < spkNos.length - 1 ? "6px" : "0",
+                                marginTop: idx > 0 ? "4px" : "0",
+                            }}
+                        >
+                            <div
+                                style={
+                                    isMobileView
+                                        ? styles.cardSpkName
+                                        : styles.spkNameText
+                                }
+                            >
+                                {name}
+                            </div>
+                            <div
+                                style={
+                                    isMobileView
+                                        ? styles.cardSpkNo
+                                        : styles.spkNoText
+                                }
+                            >
+                                No. SPK: {no}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    }
+
     return (
-        <div style={styles.page}>
+        <div
+            style={{
+                ...styles.page,
+                padding: isMobile ? "12px" : "24px",
+            }}
+        >
             {/* HEADER AREA */}
-            <div style={styles.header}>
+            <div
+                style={{
+                    ...styles.header,
+                    flexDirection: isMobile ? "column" : "row",
+                    alignItems: isMobile ? "stretch" : "center",
+                    gap: isMobile ? "16px" : "12px",
+                    padding: isMobile ? "16px" : "20px 24px",
+                }}
+            >
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <button
                         style={styles.btnBack}
@@ -205,6 +309,8 @@ export default function MonitoringJobPage() {
                 <div
                     style={{
                         ...styles.avgCard,
+                        width: isMobile ? "100%" : "auto",
+                        boxSizing: "border-box",
                         background:
                             persen >= 85
                                 ? "#059669"
@@ -219,20 +325,37 @@ export default function MonitoringJobPage() {
             </div>
 
             {/* FILTER BAR */}
-            <div style={styles.filterBar}>
-                <div style={styles.filterGroup}>
+            <div
+                style={{
+                    ...styles.filterBar,
+                    flexDirection: isMobile ? "column" : "row",
+                    alignItems: isMobile ? "stretch" : "end",
+                    gap: isMobile ? "12px" : "16px",
+                    padding: isMobile ? "16px" : "16px 20px",
+                }}
+            >
+                <div style={{ ...styles.filterGroup, width: "100%" }}>
                     <label style={styles.label}>Pilih Tanggal</label>
                     <input
                         type="date"
-                        style={styles.input}
+                        style={{
+                            ...styles.input,
+                            width: "100%",
+                            boxSizing: "border-box",
+                        }}
                         value={tanggal}
                         onChange={(e) => setTanggal(e.target.value)}
                     />
                 </div>
-                <div style={styles.filterGroup}>
+                <div style={{ ...styles.filterGroup, width: "100%" }}>
                     <label style={styles.label}>Lini</label>
                     <select
-                        style={styles.select}
+                        style={{
+                            ...styles.select,
+                            width: "100%",
+                            boxSizing: "border-box",
+                            height: 40,
+                        }}
                         value={lini}
                         onChange={(e) => setLini(e.target.value)}
                     >
@@ -246,10 +369,15 @@ export default function MonitoringJobPage() {
                         ))}
                     </select>
                 </div>
-                <div style={styles.filterGroup}>
+                <div style={{ ...styles.filterGroup, width: "100%" }}>
                     <label style={styles.label}>Kelompok</label>
                     <select
-                        style={styles.select}
+                        style={{
+                            ...styles.select,
+                            width: "100%",
+                            boxSizing: "border-box",
+                            height: 40,
+                        }}
                         value={kelompok}
                         onChange={(e) => setKelompok(e.target.value)}
                         disabled={!isAdmin}
@@ -265,9 +393,19 @@ export default function MonitoringJobPage() {
                         ))}
                     </select>
                 </div>
-                <div style={{ display: "flex", alignItems: "end" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "end",
+                        width: isMobile ? "100%" : "auto",
+                    }}
+                >
                     <button
-                        style={styles.btnRefresh}
+                        style={{
+                            ...styles.btnRefresh,
+                            width: isMobile ? "100%" : "auto",
+                            height: "40px",
+                        }}
                         onClick={loadMonitoring}
                         disabled={loading || !lini || !kelompok}
                     >
@@ -278,70 +416,42 @@ export default function MonitoringJobPage() {
 
             {errorMsg && <div style={styles.errorBox}>{errorMsg}</div>}
 
-            {/* MONITORING TABLE */}
-            <div style={styles.tableWrap}>
-                <table style={styles.table}>
-                    <thead>
-                        <tr>
-                            <th style={{ ...styles.th, ...styles.colJam }}>
-                                JAM
-                            </th>
-                            <th style={{ ...styles.th, ...styles.colMp }}>
-                                MP
-                            </th>
-                            <th style={{ ...styles.th, ...styles.colSpk }}>
-                                DETAIL SPK / BARANG
-                            </th>
-                            <th
-                                style={{ ...styles.thCenter, ...styles.colNum }}
-                            >
-                                TARGET
-                            </th>
-                            <th
-                                style={{ ...styles.thCenter, ...styles.colNum }}
-                            >
-                                REALISASI
-                            </th>
-                            <th
-                                style={{ ...styles.thCenter, ...styles.colNum }}
-                            >
-                                CAPAIAN (%)
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows.length === 0 ? (
-                            <tr>
-                                <td colSpan={6} style={styles.tdEmpty}>
-                                    Menunggu data produksi...
-                                </td>
-                            </tr>
-                        ) : (
-                            rows.map((r, i) => (
-                                <tr
-                                    key={i}
-                                    style={
-                                        i % 2 === 0
-                                            ? styles.trEven
-                                            : styles.trOdd
-                                    }
-                                >
-                                    <td style={styles.tdJam}>{r.jam || ""}</td>
-                                    <td style={styles.tdMp}>{r.mp}</td>
-                                    <td style={styles.tdSpk}>
-                                        <div>{r.spk}</div>
-                                        <div style={styles.spkMeta}>
-                                            Total SPK: {getSpkCount(r.spk)}
+            {/* DATA SECTION */}
+            {isMobile ? (
+                /* Tampilan Card khusus Mobile */
+                <div style={styles.cardList}>
+                    {rows.length === 0 ? (
+                        <div style={styles.tdEmpty}>
+                            Menunggu data produksi...
+                        </div>
+                    ) : (
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 12,
+                            }}
+                        >
+                            {rows.map((r, i) => (
+                                <div key={i} style={styles.mobileCard}>
+                                    <div style={styles.cardHeader}>
+                                        <div
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 8,
+                                            }}
+                                        >
+                                            <span style={styles.cardJamBadge}>
+                                                Jam {r.jam}
+                                            </span>
                                         </div>
-                                    </td>
-                                    <td style={styles.tdTarget}>{r.target}</td>
-                                    <td style={styles.tdRealisasi}>
-                                        {r.realisasi}
-                                    </td>
-                                    <td style={styles.tdCenter}>
                                         <div
                                             style={{
                                                 ...styles.percentBadge,
+                                                padding: "4px 8px",
+                                                fontSize: "12px",
+                                                minWidth: "auto",
                                                 background:
                                                     r.persen >= 100
                                                         ? "#DCFCE7"
@@ -358,13 +468,155 @@ export default function MonitoringJobPage() {
                                         >
                                             {r.persen}%
                                         </div>
+                                    </div>
+                                    <div style={styles.cardBody}>
+                                        <div style={styles.cardSpkInfo}>
+                                            {renderSpkDetail(r.spk, true)}
+                                            <div style={styles.cardSpkMeta}>
+                                                MP: {r.mp} orang &nbsp;•&nbsp;
+                                                Total SPK: {getSpkCount(r.spk)}
+                                            </div>
+                                        </div>
+                                        <div style={styles.cardStatsGrid}>
+                                            <div
+                                                style={styles.cardStatBoxTarget}
+                                            >
+                                                <span
+                                                    style={styles.cardStatLabel}
+                                                >
+                                                    Target
+                                                </span>
+                                                <span
+                                                    style={styles.cardStatVal}
+                                                >
+                                                    {r.target}
+                                                </span>
+                                            </div>
+                                            <div
+                                                style={
+                                                    styles.cardStatBoxRealisasi
+                                                }
+                                            >
+                                                <span
+                                                    style={styles.cardStatLabel}
+                                                >
+                                                    Realisasi
+                                                </span>
+                                                <span
+                                                    style={styles.cardStatVal}
+                                                >
+                                                    {r.realisasi}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ) : (
+                /* Tampilan Tabel untuk Tablet & Desktop */
+                <div style={styles.tableWrap}>
+                    <table style={styles.table}>
+                        <thead>
+                            <tr>
+                                <th style={{ ...styles.th, ...styles.colJam }}>
+                                    JAM
+                                </th>
+                                <th style={{ ...styles.th, ...styles.colMp }}>
+                                    Man Power
+                                </th>
+                                <th style={{ ...styles.th, ...styles.colSpk }}>
+                                    DETAIL SPK / BARANG
+                                </th>
+                                <th
+                                    style={{
+                                        ...styles.thCenter,
+                                        ...styles.colNum,
+                                    }}
+                                >
+                                    TARGET
+                                </th>
+                                <th
+                                    style={{
+                                        ...styles.thCenter,
+                                        ...styles.colNum,
+                                    }}
+                                >
+                                    REALISASI
+                                </th>
+                                <th
+                                    style={{
+                                        ...styles.thCenter,
+                                        ...styles.colNum,
+                                    }}
+                                >
+                                    CAPAIAN (%)
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {rows.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} style={styles.tdEmpty}>
+                                        Menunggu data produksi...
                                     </td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                            ) : (
+                                rows.map((r, i) => (
+                                    <tr
+                                        key={i}
+                                        style={
+                                            i % 2 === 0
+                                                ? styles.trEven
+                                                : styles.trOdd
+                                        }
+                                    >
+                                        <td style={styles.tdJam}>
+                                            {r.jam || ""}
+                                        </td>
+                                        <td style={styles.tdMp}>{r.mp}</td>
+                                        <td style={styles.tdSpk}>
+                                            {renderSpkDetail(r.spk, false)}
+                                            <div style={styles.spkMeta}>
+                                                Total SPK: {getSpkCount(r.spk)}
+                                            </div>
+                                        </td>
+                                        <td style={styles.tdTarget}>
+                                            {r.target}
+                                        </td>
+                                        <td style={styles.tdRealisasi}>
+                                            {r.realisasi}
+                                        </td>
+                                        <td style={styles.tdCenter}>
+                                            <div
+                                                style={{
+                                                    ...styles.percentBadge,
+                                                    background:
+                                                        r.persen >= 100
+                                                            ? "#DCFCE7"
+                                                            : r.persen >= 80
+                                                              ? "#FFF7ED"
+                                                              : "#FEE2E2",
+                                                    color:
+                                                        r.persen >= 100
+                                                            ? "#166534"
+                                                            : r.persen >= 80
+                                                              ? "#9A3412"
+                                                              : "#991B1B",
+                                                }}
+                                            >
+                                                {r.persen}%
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
         </div>
     );
 }
@@ -460,10 +712,10 @@ const styles = {
         borderCollapse: "collapse",
         minWidth: "700px",
     },
-    colJam: { width: "13%" },
-    colMp: { width: "9%" },
-    colSpk: { width: "38%" },
-    colNum: { width: "13.33%" },
+    colJam: { width: "12%" },
+    colMp: { width: "10%" },
+    colSpk: { width: "42%" },
+    colNum: { width: "12%" },
     th: {
         textAlign: "left",
         padding: "16px 24px",
@@ -517,6 +769,17 @@ const styles = {
         textTransform: "uppercase",
         letterSpacing: "0.04em",
     },
+    spkNameText: {
+        fontSize: "14px",
+        fontWeight: 800,
+        color: "#111827",
+    },
+    spkNoText: {
+        fontSize: "12px",
+        color: "#4B5563",
+        fontWeight: 600,
+        marginTop: "2px",
+    },
     tdTarget: {
         padding: "16px 24px",
         borderBottom: "1px solid #F3F4F6",
@@ -533,6 +796,13 @@ const styles = {
         fontWeight: 800,
         color: "#111827",
         fontFamily: "'Inter', sans-serif",
+    },
+    tdCenter: {
+        padding: "16px 24px",
+        borderBottom: "1px solid #F3F4F6",
+        textAlign: "center",
+        fontSize: "14px",
+        color: "#374151",
     },
 
     percentBadge: {
@@ -588,5 +858,99 @@ const styles = {
         padding: "10px 12px",
         fontSize: "13px",
         fontWeight: 600,
+    },
+
+    /* --- Mobile Card List Styles --- */
+    cardList: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    mobileCard: {
+        background: "#ffffff",
+        border: "1px solid #E5E7EB",
+        borderRadius: "16px",
+        padding: "16px",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    cardHeader: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        borderBottom: "1px solid #F3F4F6",
+        paddingBottom: "10px",
+    },
+    cardJamBadge: {
+        fontSize: "12px",
+        fontWeight: 700,
+        color: "#1E40AF",
+        background: "#E0F2FE",
+        padding: "4px 8px",
+        borderRadius: "6px",
+    },
+    cardBody: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    cardSpkInfo: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+    },
+    cardSpkName: {
+        fontSize: "14px",
+        fontWeight: 800,
+        color: "#111827",
+        whiteSpace: "pre-line",
+    },
+    cardSpkNo: {
+        fontSize: "12px",
+        color: "#4B5563",
+        fontWeight: 600,
+        marginTop: "1px",
+    },
+    cardSpkMeta: {
+        fontSize: "11px",
+        color: "#6B7280",
+        fontWeight: 700,
+        marginTop: 4,
+    },
+    cardStatsGrid: {
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "8px",
+    },
+    cardStatBoxTarget: {
+        background: "#F9FAFB",
+        border: "1px solid #E5E7EB",
+        borderRadius: "8px",
+        padding: "8px 12px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+    },
+    cardStatBoxRealisasi: {
+        background: "#FFFBF7",
+        border: "1px solid #F1E9E2",
+        borderRadius: "8px",
+        padding: "8px 12px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+    },
+    cardStatLabel: {
+        fontSize: "10px",
+        fontWeight: 700,
+        color: "#6B7280",
+        textTransform: "uppercase",
+        letterSpacing: "0.05em",
+    },
+    cardStatVal: {
+        fontSize: "16px",
+        fontWeight: 800,
     },
 };
