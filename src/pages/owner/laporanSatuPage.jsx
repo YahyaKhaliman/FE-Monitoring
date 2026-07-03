@@ -298,18 +298,40 @@ export default function LaporanPage() {
     return (
         <div style={styles.page}>
             {/* HEADER */}
-            <div style={styles.header}>
+            <div style={{
+                ...styles.header,
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: isMobile ? "stretch" : "center",
+                textAlign: isMobile ? "center" : "left",
+                gap: isMobile ? 16 : 12,
+            }}>
                 <div>
-                    <h1
-                        style={styles.topTitle}
-                    >{`Monitoring Produksi ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h1>
+                    <h1 style={{
+                        ...styles.topTitle,
+                        fontSize: isMobile ? "20px" : "28px",
+                    }}>
+                        {`Monitoring Produksi ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}
+                    </h1>
                 </div>
-                <div style={styles.headerActions}>
-                    <button style={styles.btnSecondary} onClick={handleLogout}>
+                <div style={{
+                    ...styles.headerActions,
+                    width: isMobile ? "100%" : "auto",
+                    justifyContent: isMobile ? "space-between" : "flex-end",
+                    gap: "8px",
+                }}>
+                    <button style={{
+                        ...styles.btnSecondary,
+                        flex: isMobile ? 1 : "none",
+                        height: isMobile ? "40px" : "46px",
+                    }} onClick={handleLogout}>
                         Keluar
                     </button>
                     <button
-                        style={styles.btnPrimary}
+                        style={{
+                            ...styles.btnPrimary,
+                            flex: isMobile ? 1 : "none",
+                            height: isMobile ? "40px" : "46px",
+                        }}
                         onClick={load}
                         disabled={loading}
                     >
@@ -319,7 +341,11 @@ export default function LaporanPage() {
             </div>
 
             {/* STATS CARDS */}
-            <div style={styles.cards}>
+            <div style={{
+                ...styles.cards,
+                gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(auto-fit, minmax(220px, 1fr))",
+                gap: isMobile ? "12px" : "24px",
+            }}>
                 {loading ? (
                     <>
                         <SkeletonCard />
@@ -358,10 +384,24 @@ export default function LaporanPage() {
             </div>
 
             {/* FILTER */}
-            <div style={styles.filterBar}>
-                <div style={styles.filterGroup}>
+            <div style={{
+                ...styles.filterBar,
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: isMobile ? "stretch" : "flex-end",
+                gap: isMobile ? 14 : 24,
+                padding: isMobile ? "16px" : "24px",
+            }}>
+                <div style={{
+                    ...styles.filterGroup,
+                    width: isMobile ? "100%" : "auto",
+                }}>
                     <label style={styles.label}>Periode</label>
-                    <div style={{ display: "flex", gap: 10 }}>
+                    <div style={{
+                        display: "flex",
+                        gap: 10,
+                        flexDirection: isMobile ? "column" : "row",
+                        width: "100%",
+                    }}>
                         <SimpleDatePicker
                             value={tglAwal}
                             onChange={setTglAwal}
@@ -375,7 +415,10 @@ export default function LaporanPage() {
                     </div>
                 </div>
                 <button
-                    style={styles.btnToday}
+                    style={{
+                        ...styles.btnToday,
+                        width: isMobile ? "100%" : "auto",
+                    }}
                     onClick={() => {
                         const n = toISO(new Date());
                         setTglAwal(n);
@@ -384,10 +427,16 @@ export default function LaporanPage() {
                 >
                     Hari Ini
                 </button>
-                <div style={styles.filterGroup}>
+                <div style={{
+                    ...styles.filterGroup,
+                    width: isMobile ? "100%" : "auto",
+                }}>
                     <label style={styles.label}>Line</label>
                     <select
-                        style={styles.select}
+                        style={{
+                            ...styles.select,
+                            width: isMobile ? "100%" : "auto",
+                        }}
                         value={kelompok}
                         onChange={(e) => setKelompok(e.target.value)}
                         disabled={!canSelectKelompok}
@@ -721,14 +770,31 @@ export default function LaporanPage() {
 
             {/* DATA TABLE */}
             <div style={styles.panelTable}>
-                <div style={styles.tableHeader}>
-                    <div style={styles.tableHeaderMain}>
-                        <h3
-                            style={styles.panelTitleTable}
-                        >{`Detail Produksi (${kelompok === "ALL" ? "Keseluruhan" : kelompok}) Periode ${formatDateIndo(tglAwal)} - ${formatDateIndo(tglAkhir)}`}</h3>
-                        <div style={styles.tableSearchWrap}>
+                <div style={{
+                    ...styles.tableHeader,
+                    flexDirection: isMobile ? "column" : "row",
+                    alignItems: isMobile ? "stretch" : "center",
+                    gap: isMobile ? 12 : "24px",
+                    padding: isMobile ? "16px" : "20px 24px",
+                }}>
+                    <div style={{
+                        ...styles.tableHeaderMain,
+                        flexDirection: isMobile ? "column" : "row",
+                        alignItems: isMobile ? "stretch" : "center",
+                        width: isMobile ? "100%" : "auto",
+                    }}>
+                        <h3 style={styles.panelTitleTable}>
+                            {`Detail Produksi (${kelompok === "ALL" ? "Keseluruhan" : kelompok})`}
+                        </h3>
+                        <div style={{
+                            ...styles.tableSearchWrap,
+                            width: isMobile ? "100%" : "auto",
+                        }}>
                             <input
-                                style={styles.inputSearch}
+                                style={{
+                                    ...styles.inputSearch,
+                                    maxWidth: isMobile ? "100%" : "260px",
+                                }}
                                 placeholder="Cari SPK atau Nama..."
                                 value={searchInput}
                                 onChange={(e) => setSearchInput(e.target.value)}
@@ -747,201 +813,298 @@ export default function LaporanPage() {
                             )}
                         </div>
                     </div>
-                    <span style={styles.tableSubtitle}>
+                    <span style={{
+                        ...styles.tableSubtitle,
+                        textAlign: isMobile ? "left" : "right",
+                    }}>
                         Menampilkan {filteredPerSpk.length} Data
                     </span>
                 </div>
-                <div style={styles.tableWrapper}>
-                    <table style={styles.table}>
-                        <thead>
-                            {/* Baris 1: Judul Utama */}
-                            <tr>
-                                <th rowSpan={2} style={styles.th}>
-                                    Identitas SPK
-                                </th>
-                                <th style={styles.thDaily}>Target</th>
-                                <th style={styles.thDaily}>Realisasi</th>
-                                <th rowSpan={2} style={styles.thHighlight}>
-                                    Order
-                                </th>
-                                <th rowSpan={2} style={styles.thHighlight}>
-                                    Total <br /> Realisasi
-                                </th>
-                                <th rowSpan={2} style={styles.thHighlight}>
-                                    Progress
-                                </th>
-                                <th rowSpan={2} style={styles.thHighlight}>
-                                    Detail
-                                </th>
-                                <th rowSpan={2} style={styles.thCenter}>
-                                    Status
-                                </th>
-                            </tr>
-                            <tr>
-                                <th colSpan={2} style={styles.thSubDate}>
-                                    {formatDateIndo(tglAwal)} -{" "}
-                                    {formatDateIndo(tglAkhir)}
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                <div style={{
+                    ...styles.tableWrapper,
+                    padding: isMobile ? "12px 8px" : 0,
+                }}>
+                    {isMobile ? (
+                        /* TAMPILAN MOBILE: CARD LIST */
+                        <div style={styles.mobileCardList}>
                             {loading ? (
-                                <SkeletonTable cols={8} rows={5} />
+                                <SkeletonCard />
                             ) : filteredPerSpk.length === 0 ? (
-                                <tr>
-                                    <td
-                                        colSpan={8}
-                                        style={{
-                                            textAlign: "center",
-                                            padding: "40px",
-                                            color: "#9CA3AF",
-                                        }}
-                                    >
-                                        Data tidak ditemukan
-                                    </td>
-                                </tr>
+                                <div style={styles.emptyMobileState}>Data tidak ditemukan</div>
                             ) : (
-                                filteredPerSpk.map((r, i) => (
-                                    <tr
-                                        key={i}
-                                        style={
-                                            i % 2 === 0
-                                                ? styles.trEven
-                                                : styles.trOdd
-                                        }
-                                    >
-                                        {/* Identitas SPK */}
-                                        <td style={styles.td}>
-                                            <div style={styles.spkName}>
-                                                {r.nama}
-                                            </div>
-                                            <div style={styles.spkId}>
-                                                {r.spk}
-                                            </div>
-                                            <div style={styles.timelineInfo}>
-                                                <span title="Tanggal Pesan">
-                                                    Order:{" "}
-                                                    {formatDateFE(
-                                                        r.spk_tanggal,
-                                                    )}
-                                                </span>
-                                                <span
-                                                    style={{ margin: "0 4px" }}
-                                                >
-                                                    •
-                                                </span>
-                                                <span
-                                                    title="Deadline Selesai"
-                                                    style={{
-                                                        color:
-                                                            new Date(
-                                                                r.spk_dateline,
-                                                            ) < new Date()
-                                                                ? "#DC2626"
-                                                                : "#27be4a",
-                                                        fontWeight:
-                                                            new Date(
-                                                                r.spk_dateline,
-                                                            ) < new Date()
-                                                                ? 700
-                                                                : 600,
-                                                    }}
-                                                >
-                                                    Dateline:{" "}
-                                                    {formatDateFE(
-                                                        r.spk_dateline,
-                                                    )}
+                                filteredPerSpk.map((r, i) => {
+                                    const isOverdue = new Date(r.spk_dateline) < new Date();
+                                    const isDone = r.pesan && r.total_realisasi / r.pesan >= 1;
+                                    return (
+                                        <div key={i} style={styles.mobileSpkCard}>
+                                            <div style={styles.mobileCardHeader}>
+                                                <div style={{ flex: 1 }}>
+                                                    <div style={styles.mobileSpkName}>{r.nama}</div>
+                                                    <div style={styles.mobileSpkId}>{r.spk}</div>
+                                                </div>
+                                                <span style={{
+                                                    ...styles.statusBadge,
+                                                    background: isDone ? "#DCFCE7" : "#FEE2E2",
+                                                    color: isDone ? "#166534" : "#991B1B",
+                                                    height: "fit-content",
+                                                }}>
+                                                    {isDone ? "DONE" : "PROSES"}
                                                 </span>
                                             </div>
-                                        </td>
-                                        {/* Target */}
-                                        <td style={styles.tdDaily}>
-                                            {formatNumber(r.target)}
-                                        </td>
-                                        {/* Realisasi */}
-                                        <td style={styles.tdDaily}>
-                                            {formatNumber(r.realisasi)}
-                                        </td>
-                                        {/* Order */}
-                                        <td style={styles.tdHighlightNum}>
-                                            {formatNumber(r.pesan)}
-                                        </td>
-                                        {/* Total Realisasi */}
-                                        <td style={styles.tdHighlightNum}>
-                                            {formatNumber(r.total_realisasi)}
-                                        </td>
-                                        {/* Progress */}
-                                        <td style={styles.tdHighlightNum}>
-                                            <div style={styles.progressBg}>
-                                                <div
-                                                    style={{
+
+                                            <div style={styles.mobileTimelineInfo}>
+                                                <span>Order: {formatDateFE(r.spk_tanggal)}</span>
+                                                <span style={{ margin: "0 4px" }}>•</span>
+                                                <span style={{
+                                                    color: isOverdue ? "#DC2626" : "#059669",
+                                                    fontWeight: isOverdue ? 700 : 600,
+                                                }}>
+                                                    Dateline: {formatDateFE(r.spk_dateline)}
+                                                </span>
+                                            </div>
+
+                                            <div style={{ marginTop: 12 }}>
+                                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 11, fontWeight: 700, color: "#4B5563" }}>
+                                                    <span>Progress Produksi</span>
+                                                    <span>{formatPercent((r.total_realisasi / r.pesan) * 100)}</span>
+                                                </div>
+                                                <div style={styles.progressBg}>
+                                                    <div style={{
                                                         ...styles.progressFill,
-                                                        width: `${Math.min((r.total_realisasi / r.pesan) * 100, 100)}%`,
-                                                    }}
-                                                ></div>
+                                                        width: `${Math.min((r.total_realisasi / r.pesan) * 100, 100)}%`
+                                                    }} />
+                                                </div>
                                             </div>
-                                            <div
-                                                style={{
-                                                    fontWeight: 700,
-                                                    color: "#374151",
-                                                    fontSize: "12px",
-                                                    marginTop: "4px",
-                                                }}
-                                            >
-                                                {formatPercent(
-                                                    (r.total_realisasi /
-                                                        r.pesan) *
-                                                        100,
-                                                )}
+
+                                            <div style={styles.mobileStatsGrid}>
+                                                <div style={styles.mobileStatBox}>
+                                                    <div style={styles.mobileStatLabel}>Target</div>
+                                                    <div style={styles.mobileStatValBlue}>{formatNumber(r.target)}</div>
+                                                </div>
+                                                <div style={styles.mobileStatBox}>
+                                                    <div style={styles.mobileStatLabel}>Realisasi</div>
+                                                    <div style={styles.mobileStatValBlue}>{formatNumber(r.realisasi)}</div>
+                                                </div>
+                                                <div style={styles.mobileStatBox}>
+                                                    <div style={styles.mobileStatLabel}>Order Qty</div>
+                                                    <div style={styles.mobileStatVal}>{formatNumber(r.pesan)}</div>
+                                                </div>
+                                                <div style={styles.mobileStatBox}>
+                                                    <div style={styles.mobileStatLabel}>Total Real</div>
+                                                    <div style={styles.mobileStatVal}>{formatNumber(r.total_realisasi)}</div>
+                                                </div>
                                             </div>
-                                        </td>
-                                        {/* Detail */}
-                                        <td
-                                            style={{
-                                                ...styles.tdHighlightNum,
-                                                color:
-                                                    r.sisa < 0
-                                                        ? "#DC2626"
-                                                        : "#059669",
+
+                                            <div style={{
+                                                marginTop: 10,
+                                                padding: "8px 12px",
+                                                background: r.sisa < 0 ? "#FEF2F2" : "#ECFDF5",
+                                                borderRadius: "8px",
+                                                fontSize: "12px",
                                                 fontWeight: 800,
+                                                color: r.sisa < 0 ? "#DC2626" : "#047857",
+                                                textAlign: "center"
+                                            }}>
+                                                {r.sisa < 0 ? `KURANG: ${formatNumber(Math.abs(r.sisa))} pcs` : `SISA: ${formatNumber(r.sisa)} pcs`}
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    ) : (
+                        /* TAMPILAN DESKTOP/TABLET: TABEL */
+                        <table style={styles.table}>
+                            <thead>
+                                {/* Baris 1: Judul Utama */}
+                                <tr>
+                                    <th rowSpan={2} style={styles.th}>
+                                        Identitas SPK
+                                    </th>
+                                    <th style={styles.thDaily}>Target</th>
+                                    <th style={styles.thDaily}>Realisasi</th>
+                                    <th rowSpan={2} style={styles.thHighlight}>
+                                        Order
+                                    </th>
+                                    <th rowSpan={2} style={styles.thHighlight}>
+                                        Total <br /> Realisasi
+                                    </th>
+                                    <th rowSpan={2} style={styles.thHighlight}>
+                                        Progress
+                                    </th>
+                                    <th rowSpan={2} style={styles.thHighlight}>
+                                        Detail
+                                    </th>
+                                    <th rowSpan={2} style={styles.thCenter}>
+                                        Status
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th colSpan={2} style={styles.thSubDate}>
+                                        {formatDateIndo(tglAwal)} -{" "}
+                                        {formatDateIndo(tglAkhir)}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {loading ? (
+                                    <SkeletonTable cols={8} rows={5} />
+                                ) : filteredPerSpk.length === 0 ? (
+                                    <tr>
+                                        <td
+                                            colSpan={8}
+                                            style={{
+                                                textAlign: "center",
+                                                padding: "40px",
+                                                color: "#9CA3AF",
                                             }}
                                         >
-                                            {r.sisa < 0
-                                                ? `Kurang ${formatNumber(r.sisa)}`
-                                                : `Sisa ${formatNumber(r.sisa)}`}
-                                        </td>
-                                        {/* Status */}
-                                        <td style={styles.tdNum}>
-                                            <span
-                                                style={{
-                                                    ...styles.statusBadge,
-                                                    background:
-                                                        r.pesan &&
-                                                        r.total_realisasi /
-                                                            r.pesan >=
-                                                            1
-                                                            ? "#DCFCE7"
-                                                            : "#FEE2E2",
-                                                    color:
-                                                        r.pesan &&
-                                                        r.total_realisasi /
-                                                            r.pesan >=
-                                                            1
-                                                            ? "#166534"
-                                                            : "#991B1B",
-                                                }}
-                                            >
-                                                {r.pesan &&
-                                                r.total_realisasi / r.pesan >= 1
-                                                    ? "DONE"
-                                                    : "PROSES"}
-                                            </span>
+                                            Data tidak ditemukan
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                ) : (
+                                    filteredPerSpk.map((r, i) => (
+                                        <tr
+                                            key={i}
+                                            style={
+                                                i % 2 === 0
+                                                    ? styles.trEven
+                                                    : styles.trOdd
+                                            }
+                                        >
+                                            {/* Identitas SPK */}
+                                            <td style={styles.td}>
+                                                <div style={styles.spkName}>
+                                                    {r.nama}
+                                                </div>
+                                                <div style={styles.spkId}>
+                                                    {r.spk}
+                                                </div>
+                                                <div style={styles.timelineInfo}>
+                                                    <span title="Tanggal Pesan">
+                                                        Order:{" "}
+                                                        {formatDateFE(
+                                                            r.spk_tanggal,
+                                                        )}
+                                                    </span>
+                                                    <span
+                                                        style={{ margin: "0 4px" }}
+                                                    >
+                                                        •
+                                                    </span>
+                                                    <span
+                                                        title="Deadline Selesai"
+                                                        style={{
+                                                            color:
+                                                                new Date(
+                                                                    r.spk_dateline,
+                                                                ) < new Date()
+                                                                    ? "#DC2626"
+                                                                    : "#27be4a",
+                                                            fontWeight:
+                                                                new Date(
+                                                                    r.spk_dateline,
+                                                                ) < new Date()
+                                                                    ? 700
+                                                                    : 600,
+                                                        }}
+                                                    >
+                                                        Dateline:{" "}
+                                                        {formatDateFE(
+                                                            r.spk_dateline,
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            {/* Target */}
+                                            <td style={styles.tdDaily}>
+                                                {formatNumber(r.target)}
+                                            </td>
+                                            {/* Realisasi */}
+                                            <td style={styles.tdDaily}>
+                                                {formatNumber(r.realisasi)}
+                                            </td>
+                                            {/* Order */}
+                                            <td style={styles.tdHighlightNum}>
+                                                {formatNumber(r.pesan)}
+                                            </td>
+                                            {/* Total Realisasi */}
+                                            <td style={styles.tdHighlightNum}>
+                                                {formatNumber(r.total_realisasi)}
+                                            </td>
+                                            {/* Progress */}
+                                            <td style={styles.tdHighlightNum}>
+                                                <div style={styles.progressBg}>
+                                                    <div
+                                                        style={{
+                                                            ...styles.progressFill,
+                                                            width: `${Math.min((r.total_realisasi / r.pesan) * 100, 100)}%`,
+                                                        }}
+                                                    ></div>
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        fontWeight: 700,
+                                                        color: "#374151",
+                                                        fontSize: "12px",
+                                                        marginTop: "4px",
+                                                    }}
+                                                >
+                                                    {formatPercent(
+                                                        (r.total_realisasi /
+                                                            r.pesan) *
+                                                            100,
+                                                    )}
+                                                </div>
+                                            </td>
+                                            {/* Detail */}
+                                            <td
+                                                style={{
+                                                    ...styles.tdHighlightNum,
+                                                    color:
+                                                        r.sisa < 0
+                                                            ? "#DC2626"
+                                                            : "#059669",
+                                                    fontWeight: 800,
+                                                }}
+                                            >
+                                                {r.sisa < 0
+                                                    ? `Kurang ${formatNumber(r.sisa)}`
+                                                    : `Sisa ${formatNumber(r.sisa)}`}
+                                            </td>
+                                            {/* Status */}
+                                            <td style={styles.tdNum}>
+                                                <span
+                                                    style={{
+                                                        ...styles.statusBadge,
+                                                        background:
+                                                            r.pesan &&
+                                                            r.total_realisasi /
+                                                                r.pesan >=
+                                                                1
+                                                                ? "#DCFCE7"
+                                                                : "#FEE2E2",
+                                                        color:
+                                                            r.pesan &&
+                                                            r.total_realisasi /
+                                                                r.pesan >=
+                                                                1
+                                                                ? "#166534"
+                                                                : "#991B1B",
+                                                    }}
+                                                >
+                                                    {r.pesan &&
+                                                    r.total_realisasi / r.pesan >= 1
+                                                        ? "DONE"
+                                                        : "PROSES"}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             </div>
             <div style={styles.footer}>
@@ -953,11 +1116,15 @@ export default function LaporanPage() {
 
 // --- Internal Components ---
 function StatCard({ title, value, desc, color }) {
+    const isMobile = typeof window !== "undefined" && window.innerWidth <= 768;
     return (
-        <div style={styles.card}>
+        <div style={{
+            ...styles.card,
+            padding: isMobile ? "16px 12px" : "24px",
+        }}>
             <div
                 style={{
-                    fontSize: 11,
+                    fontSize: isMobile ? 9 : 11,
                     color: "#6B7280",
                     fontWeight: 800,
                     textTransform: "uppercase",
@@ -968,7 +1135,7 @@ function StatCard({ title, value, desc, color }) {
             </div>
             <div
                 style={{
-                    fontSize: 32,
+                    fontSize: isMobile ? 20 : 32,
                     fontWeight: 800,
                     color: color,
                     margin: "4px 0",
@@ -977,7 +1144,12 @@ function StatCard({ title, value, desc, color }) {
             >
                 {value}
             </div>
-            <div style={{ fontSize: 12, color: "#4B5563", fontWeight: 500 }}>
+            <div style={{
+                fontSize: isMobile ? 10 : 12,
+                color: "#4B5563",
+                fontWeight: 500,
+                lineHeight: 1.2,
+            }}>
                 {desc}
             </div>
         </div>
@@ -1408,5 +1580,98 @@ const styles = {
         fontWeight: 600,
         textTransform: "uppercase",
         letterSpacing: "0.1em",
+    },
+
+    /* --- Mobile Card List Styles --- */
+    mobileCardList: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "14px",
+    },
+    mobileSpkCard: {
+        background: "#ffffff",
+        border: "1px solid #E5E7EB",
+        borderRadius: "16px",
+        padding: "16px",
+        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+    },
+    mobileCardHeader: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        borderBottom: "1px solid #F3F4F6",
+        paddingBottom: "8px",
+        gap: "8px",
+    },
+    mobileSpkName: {
+        fontSize: "14px",
+        fontWeight: 800,
+        color: "#111827",
+        lineHeight: "1.4",
+        textAlign: "left",
+    },
+    mobileSpkId: {
+        fontSize: "12px",
+        color: "#6B7280",
+        fontWeight: 650,
+        marginTop: "2px",
+        fontFamily: "'Inter', sans-serif",
+        textAlign: "left",
+    },
+    mobileTimelineInfo: {
+        fontSize: "11px",
+        color: "#6B7280",
+        display: "flex",
+        alignItems: "center",
+        flexWrap: "wrap",
+        fontFamily: "'Inter', sans-serif",
+        fontWeight: 500,
+    },
+    mobileStatsGrid: {
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "8px",
+        marginTop: "8px",
+    },
+    mobileStatBox: {
+        background: "#F9FAFB",
+        border: "1px solid #E5E7EB",
+        borderRadius: "8px",
+        padding: "8px 10px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+    },
+    mobileStatLabel: {
+        fontSize: "9px",
+        fontWeight: 700,
+        color: "#6B7280",
+        textTransform: "uppercase",
+        letterSpacing: "0.05em",
+        textAlign: "left",
+    },
+    mobileStatVal: {
+        fontSize: "14px",
+        fontWeight: 800,
+        color: "#374151",
+        fontFamily: "'Inter', sans-serif",
+        textAlign: "left",
+    },
+    mobileStatValBlue: {
+        fontSize: "14px",
+        fontWeight: 800,
+        color: "#1E40AF",
+        fontFamily: "'Inter', sans-serif",
+        textAlign: "left",
+    },
+    emptyMobileState: {
+        padding: "40px 16px",
+        textAlign: "center",
+        color: "#9CA3AF",
+        fontStyle: "italic",
+        fontSize: "13px",
     },
 };
