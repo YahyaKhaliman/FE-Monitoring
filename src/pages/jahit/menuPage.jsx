@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/authProvider";
+import { useAuth } from "../../context/authProvider";
 import { toast } from "react-toastify";
 
 export default function MenuPage() {

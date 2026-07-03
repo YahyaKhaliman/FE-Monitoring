@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
-import { login as apiLogin } from "../services/user.service";
-import { loadCred, saveCred, clearCred } from "../utils/storage";
+import { login as apiLogin } from "../../services/user.service";
+import { loadCred, saveCred, clearCred } from "../../utils/storage";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/authProvider";
+import { useAuth } from "../../context/authProvider";
 import {
     AiOutlineEye,
     AiOutlineEyeInvisible,

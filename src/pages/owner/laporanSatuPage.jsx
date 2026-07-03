@@ -1,15 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import SimpleDatePicker from "../components/SimpleDatePicker";
+import SimpleDatePicker from "../../components/SimpleDatePicker";
 import { useNavigate } from "react-router-dom";
-import { getLaporan } from "../services/laporan.service";
-import { getMonitoringKelompok } from "../services/monitoringJob.service";
-import { useAuth } from "../context/authProvider";
+import { getLaporan } from "../../services/laporan.service";
+import { getMonitoringKelompok } from "../../services/monitoringJob.service";
+import { useAuth } from "../../context/authProvider";
 import { toast } from "react-toastify";
 import {
     SkeletonCard,
     SkeletonChart,
     SkeletonTable,
-} from "../components/Skeleton";
+} from "../../components/Skeleton";
 
 import {
     BarChart,
@@ -315,7 +315,7 @@ export default function LaporanPage() {
                 </div>
                 <div style={styles.headerActions}>
                     <button style={styles.btnSecondary} onClick={handleLogout}>
-                        Logout
+                        Keluar
                     </button>
                     <button
                         style={styles.btnPrimary}

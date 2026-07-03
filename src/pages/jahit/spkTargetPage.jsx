@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import { useEffect, useMemo, useState, useCallback } from "react";
-import { loadUser } from "../utils/storage";
+import { loadUser } from "../../utils/storage";
 import {
     getLini,
     getSpkTargets,
@@ -9,12 +9,12 @@ import {
     updateSpkTarget,
     deleteSpkTarget,
     cariSpkTarget,
-} from "../services/spkTarget.service";
+} from "../../services/spkTarget.service";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { MdEdit, MdDelete } from "react-icons/md";
 import { RxCross1 } from "react-icons/rx";
-import { SkeletonTable } from "../components/Skeleton";
+import { SkeletonTable } from "../../components/Skeleton";
 
 export default function SpkTargetPage() {
     const navigate = useNavigate();
@@ -28,6 +28,20 @@ export default function SpkTargetPage() {
     const isAdmin = ["ADMIN", "IT"].includes(
         (user?.user_bagian || "").toUpperCase(),
     );
+
+    // --- Responsive Detection ---
+    const [windowWidth, setWindowWidth] = useState(
+        typeof window !== "undefined" ? window.innerWidth : 1024
+    );
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    const isMobile = windowWidth <= 600;
+    const isTablet = windowWidth > 600 && windowWidth <= 1024;
 
     // --- States ---
     const [liniList, setLiniList] = useState([]);
@@ -204,8 +218,17 @@ export default function SpkTargetPage() {
     }, [rows, searchTerm]);
 
     return (
-        <div style={styles.page}>
-            <div style={styles.header}>
+        <div style={{
+            ...styles.page,
+            padding: isMobile ? "12px" : "20px",
+        }}>
+            <div style={{
+                ...styles.header,
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: isMobile ? "stretch" : "center",
+                gap: isMobile ? "16px" : "12px",
+                padding: isMobile ? "16px" : "15px 20px",
+            }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <button
                         style={styles.btnGhost}
@@ -220,9 +243,18 @@ export default function SpkTargetPage() {
                         </div>
                     </div>
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{
+                    display: "flex",
+                    gap: 8,
+                    width: isMobile ? "100%" : "auto",
+                    justifyContent: isMobile ? "stretch" : "flex-end"
+                }}>
                     <button
-                        style={styles.btnSecondary}
+                        style={{
+                            ...styles.btnSecondary,
+                            flex: isMobile ? 1 : "none",
+                            height: "44px",
+                        }}
                         onClick={() =>
                             toast.promise(refreshWithToast(), {
                                 pending: "Sinkronisasi data...",
@@ -236,7 +268,11 @@ export default function SpkTargetPage() {
                     </button>
                     {isAdmin && (
                         <button
-                            style={styles.btnPrimary}
+                            style={{
+                                ...styles.btnPrimary,
+                                flex: isMobile ? 1 : "none",
+                                height: "44px",
+                            }}
                             onClick={() => {
                                 setEditMode(false);
                                 setNomor("");
@@ -252,10 +288,16 @@ export default function SpkTargetPage() {
                 </div>
             </div>
 
-            <div style={styles.filters}>
-                <div style={{ flex: 1 }}>
+            <div style={{
+                ...styles.filters,
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: isMobile ? "stretch" : "end",
+                gap: isMobile ? 16 : 12,
+                padding: isMobile ? "16px" : "15px 20px",
+            }}>
+                <div style={{ flex: 1, width: "100%" }}>
                     <label style={styles.label}>Pilih Lini Produksi</label>
-                    <div style={styles.selectWrap}>
+                    <div style={{ ...styles.selectWrap, maxWidth: isMobile ? "none" : "300px" }}>
                         <select
                             value={selectedLini}
                             onChange={(e) => {
@@ -269,7 +311,7 @@ export default function SpkTargetPage() {
                                     setIsLiniOpen(false);
                                 }
                             }}
-                            style={styles.select}
+                            style={{ ...styles.select, maxWidth: isMobile ? "none" : "300px" }}
                         >
                             {liniList.map((l) => (
                                 <option
@@ -291,9 +333,9 @@ export default function SpkTargetPage() {
                     </div>
                 </div>
 
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, width: "100%" }}>
                     <label style={styles.label}>Cari SPK / Nama Produk</label>
-                    <div style={styles.searchWrap}>
+                    <div style={{ ...styles.searchWrap, maxWidth: isMobile ? "none" : "420px" }}>
                         <input
                             type="text"
                             value={searchTerm}
@@ -314,62 +356,135 @@ export default function SpkTargetPage() {
                 </div>
             </div>
 
-            <div style={styles.tableWrap}>
-                <table style={styles.table}>
-                    <thead>
-                        <tr>
-                            <th style={styles.th}>Nomor SPK</th>
-                            <th style={styles.th}>Nama Produk</th>
-                            <th style={styles.thCenter}>Target/Jam</th>
-                            {isAdmin && <th style={styles.thCenter}>Aksi</th>}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <SkeletonTable cols={isAdmin ? 4 : 3} rows={5} />
-                        ) : (
-                            filteredRows.map((r, i) => (
-                                <tr
-                                    key={r.nomor}
-                                    style={
-                                        i % 2 === 0 ? styles.trEven : styles.trOdd
-                                    }
-                                >
-                                    <td style={styles.tdNomor}>{r.nomor}</td>
-                                    <td style={styles.td}>{r.nama || "-"}</td>
-                                    <td style={styles.tdTarget}>{r.target}</td>
-                                    {isAdmin && (
-                                        <td style={styles.tdCenter}>
-                                            <button
-                                                style={styles.btnEdit}
-                                                onClick={() => {
-                                                    setEditMode(true);
-                                                    setNomor(r.nomor);
-                                                    setNama(r.nama);
-                                                    setTargetPerJam(r.target);
-                                                    setSpkClosed(false);
-                                                    setOpenForm(true);
-                                                }}
-                                            >
-                                                <MdEdit />
-                                            </button>
-                                            <button
-                                                style={styles.btnDelete}
-                                                onClick={() => onDelete(r)}
-                                            >
-                                                <MdDelete />
-                                            </button>
-                                        </td>
-                                    )}
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-                {filteredRows.length === 0 && !loading && (
-                    <div style={styles.empty}>Data tidak ditemukan</div>
-                )}
-            </div>
+            {isMobile ? (
+                /* Tampilan Card untuk Mobile */
+                <div style={styles.cardList}>
+                    {loading ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                            {[1, 2, 3].map((n) => (
+                                <div key={n} style={styles.mobileCard}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                                        <div className="skeleton" style={{ width: "120px", height: "20px", borderRadius: "4px" }}></div>
+                                        <div className="skeleton" style={{ width: "80px", height: "36px", borderRadius: "8px" }}></div>
+                                    </div>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                                        <div className="skeleton" style={{ width: "100%", height: "16px", borderRadius: "4px" }}></div>
+                                        <div className="skeleton" style={{ width: "60px", height: "24px", borderRadius: "4px" }}></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : filteredRows.length === 0 ? (
+                        <div style={styles.empty}>Data tidak ditemukan</div>
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                            {filteredRows.map((r) => (
+                                <div key={r.nomor} style={styles.mobileCard}>
+                                    <div style={styles.cardHeader}>
+                                        <div style={styles.cardTitleWrap}>
+                                            <span style={styles.cardLabel}>No. SPK</span>
+                                            <span style={styles.cardNomor}>{r.nomor}</span>
+                                        </div>
+                                        {isAdmin && (
+                                            <div style={styles.cardActions}>
+                                                <button
+                                                    style={styles.btnEditMobile}
+                                                    onClick={() => {
+                                                        setEditMode(true);
+                                                        setNomor(r.nomor);
+                                                        setNama(r.nama);
+                                                        setTargetPerJam(r.target);
+                                                        setSpkClosed(false);
+                                                        setOpenForm(true);
+                                                    }}
+                                                >
+                                                    <MdEdit size={18} />
+                                                </button>
+                                                <button
+                                                    style={styles.btnDeleteMobile}
+                                                    onClick={() => onDelete(r)}
+                                                >
+                                                    <MdDelete size={18} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div style={styles.cardBody}>
+                                        <div style={styles.cardField}>
+                                            <span style={styles.cardFieldLabel}>Nama Produk</span>
+                                            <span style={styles.cardFieldVal}>{r.nama || "-"}</span>
+                                        </div>
+                                        <div style={styles.cardFieldTarget}>
+                                            <span style={styles.cardFieldLabel}>Target / Jam</span>
+                                            <span style={styles.cardTargetVal}>{r.target} pcs</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ) : (
+                /* Tampilan Tabel untuk Tablet & Desktop */
+                <div style={styles.tableWrap}>
+                    <table style={styles.table}>
+                        <thead>
+                            <tr>
+                                <th style={styles.th}>Nomor SPK</th>
+                                <th style={styles.th}>Nama Produk</th>
+                                <th style={styles.thCenter}>Target/Jam</th>
+                                {isAdmin && <th style={styles.thCenter}>Aksi</th>}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <SkeletonTable cols={isAdmin ? 4 : 3} rows={5} />
+                            ) : (
+                                filteredRows.map((r, i) => (
+                                    <tr
+                                        key={r.nomor}
+                                        style={
+                                            i % 2 === 0
+                                                ? styles.trEven
+                                                : styles.trOdd
+                                        }
+                                    >
+                                        <td style={styles.tdNomor}>{r.nomor}</td>
+                                        <td style={styles.td}>{r.nama || "-"}</td>
+                                        <td style={styles.tdTarget}>{r.target}</td>
+                                        {isAdmin && (
+                                            <td style={styles.tdCenter}>
+                                                <button
+                                                    style={styles.btnEdit}
+                                                    onClick={() => {
+                                                        setEditMode(true);
+                                                        setNomor(r.nomor);
+                                                        setNama(r.nama);
+                                                        setTargetPerJam(r.target);
+                                                        setSpkClosed(false);
+                                                        setOpenForm(true);
+                                                    }}
+                                                >
+                                                    <MdEdit />
+                                                </button>
+                                                <button
+                                                    style={styles.btnDelete}
+                                                    onClick={() => onDelete(r)}
+                                                >
+                                                    <MdDelete />
+                                                </button>
+                                            </td>
+                                        )}
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                    {filteredRows.length === 0 && !loading && (
+                        <div style={styles.empty}>Data tidak ditemukan</div>
+                    )}
+                </div>
+            )}
 
             {/* MODAL */}
             {openForm && (
@@ -378,7 +493,13 @@ export default function SpkTargetPage() {
                     onClick={() => setOpenForm(false)}
                 >
                     <div
-                        style={styles.modal}
+                        style={{
+                            ...styles.modal,
+                            width: isMobile ? "92%" : "90%",
+                            padding: isMobile ? "20px" : "24px",
+                            maxHeight: "90vh",
+                            overflowY: "auto",
+                        }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div style={styles.modalTitle}>
@@ -419,7 +540,10 @@ export default function SpkTargetPage() {
                                     {!editMode && (
                                         <button
                                             type="button"
-                                            style={styles.btnCari}
+                                            style={{
+                                                ...styles.btnCari,
+                                                height: "42px",
+                                            }}
                                             onClick={handleCariSpk}
                                             disabled={loadingCari || !nomor}
                                         >
@@ -544,6 +668,7 @@ const styles = {
         appearance: "none",
         WebkitAppearance: "none",
         MozAppearance: "none",
+        boxSizing: "border-box",
     },
     selectWrap: { position: "relative", width: "100%", maxWidth: "300px" },
     selectArrow: {
@@ -560,12 +685,13 @@ const styles = {
     },
     searchWrap: { position: "relative", width: "100%", maxWidth: "420px" },
     searchInput: {
-        width: "90%",
+        width: "100%",
         height: "40px",
         borderRadius: "8px",
         border: "1px solid #D1D5DB",
         padding: "0 36px 0 12px",
         outline: "none",
+        boxSizing: "border-box",
     },
     clearSearchBtn: {
         position: "absolute",
@@ -592,9 +718,10 @@ const styles = {
         background: "#fff",
         border: "1px solid #E5E7EB",
         borderRadius: "16px",
-        overflow: "hidden",
+        overflowX: "auto",
+        WebkitOverflowScrolling: "touch",
     },
-    table: { width: "100%", borderCollapse: "collapse" },
+    table: { width: "100%", borderCollapse: "collapse", minWidth: "600px" },
     th: {
         textAlign: "left",
         padding: "14px 20px",
@@ -611,6 +738,7 @@ const styles = {
         fontWeight: 800,
         background: "#F9FAFB",
         borderBottom: "1px solid #E5E7EB",
+        color: "#4B5563",
     },
     td: {
         padding: "14px 20px",
@@ -654,6 +782,9 @@ const styles = {
         borderRadius: "8px",
         fontWeight: 700,
         cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
     },
     btnSecondary: {
         background: "#fff",
@@ -663,6 +794,9 @@ const styles = {
         borderRadius: "8px",
         cursor: "pointer",
         fontWeight: 700,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
     },
     btnGhost: {
         background: "none",
@@ -675,20 +809,28 @@ const styles = {
         color: "#fff",
         background: "#b38600",
         border: "1px solid #D1D5DB",
-        padding: "5px 12px",
+        padding: "8px 14px",
         borderRadius: "6px",
-        fontSize: "12px",
+        fontSize: "13px",
         marginRight: 5,
         cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "36px",
     },
     btnDelete: {
         background: "#a01c29",
         border: "1px solid #FEE2E2",
         color: "#ffffff",
-        padding: "5px 12px",
+        padding: "8px 14px",
         borderRadius: "6px",
-        fontSize: "12px",
+        fontSize: "13px",
         cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "36px",
     },
     modalOverlay: {
         position: "fixed",
@@ -704,6 +846,7 @@ const styles = {
         maxWidth: "400px",
         borderRadius: "20px",
         padding: "24px",
+        boxSizing: "border-box",
     },
     modalTitle: { fontSize: "20px", fontWeight: 800 },
     modalSub: { fontSize: "12px", color: "#6B7280" },
@@ -748,5 +891,111 @@ const styles = {
         borderRadius: "10px",
         fontWeight: 700,
         cursor: "pointer",
+    },
+
+    /* --- Mobile Card List Styles --- */
+    cardList: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    mobileCard: {
+        background: "#ffffff",
+        border: "1px solid #E5E7EB",
+        borderRadius: "16px",
+        padding: "16px",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    cardHeader: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        borderBottom: "1px solid #F3F4F6",
+        paddingBottom: "10px",
+    },
+    cardTitleWrap: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+    },
+    cardLabel: {
+        fontSize: "10px",
+        fontWeight: 700,
+        color: "#9CA3AF",
+        textTransform: "uppercase",
+        letterSpacing: "0.05em",
+    },
+    cardNomor: {
+        fontSize: "15px",
+        fontWeight: 800,
+        color: "#111827",
+    },
+    cardActions: {
+        display: "flex",
+        gap: "6px",
+    },
+    btnEditMobile: {
+        color: "#fff",
+        background: "#b38600",
+        border: "none",
+        width: "38px",
+        height: "38px",
+        borderRadius: "8px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        transition: "opacity 0.2s",
+    },
+    btnDeleteMobile: {
+        color: "#fff",
+        background: "#a01c29",
+        border: "none",
+        width: "38px",
+        height: "38px",
+        borderRadius: "8px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+        transition: "opacity 0.2s",
+    },
+    cardBody: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "10px",
+    },
+    cardField: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+    },
+    cardFieldLabel: {
+        fontSize: "11px",
+        fontWeight: 700,
+        color: "#6B7280",
+    },
+    cardFieldVal: {
+        fontSize: "14px",
+        color: "#374151",
+        fontWeight: 500,
+    },
+    cardFieldTarget: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        background: "#FFFBF7",
+        padding: "8px 12px",
+        borderRadius: "8px",
+        border: "1px solid #F1E9E2",
+    },
+    cardTargetVal: {
+        fontSize: "15px",
+        fontWeight: 800,
+        color: "#B34E33",
+        fontFamily: "'Inter', sans-serif",
     },
 };

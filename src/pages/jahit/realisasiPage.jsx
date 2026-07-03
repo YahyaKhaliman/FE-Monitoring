@@ -4,14 +4,14 @@ import {
     getRealisasi,
     getJamOptions,
     saveRealisasi,
-} from "../services/realisasi.service";
-import { cariSpkTarget, getSpkTargets } from "../services/spkTarget.service";
-import { getManPower } from "../services/manPower.service";
-import { loadUser } from "../utils/storage";
+} from "../../services/realisasi.service";
+import { cariSpkTarget, getSpkTargets } from "../../services/spkTarget.service";
+import { getManPower } from "../../services/manPower.service";
+import { loadUser } from "../../utils/storage";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { MdSearch } from "react-icons/md";
-import { SkeletonTable } from "../components/Skeleton";
+import { SkeletonTable } from "../../components/Skeleton";
 
 function formatDateDDMMYYYY(dateStr) {
     if (!dateStr) return "-";

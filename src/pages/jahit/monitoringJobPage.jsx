@@ -4,10 +4,10 @@ import {
     getMonitoring,
     getMonitoringKelompok,
     getMonitoringLini,
-} from "../services/monitoringJob.service";
-import { loadUser } from "../utils/storage";
+} from "../../services/monitoringJob.service";
+import { loadUser } from "../../utils/storage";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/authProvider";
+import { useAuth } from "../../context/authProvider";
 
 export default function MonitoringJobPage() {
     const navigate = useNavigate();
@@ -21,8 +21,12 @@ export default function MonitoringJobPage() {
         user?.cabang ||
         user?.cab_kode ||
         "";
-    const userBagian = String(user?.user_bagian || "").trim().toUpperCase();
-    const userKelompok = String(user?.user_kelompok || "").trim().toUpperCase();
+    const userBagian = String(user?.user_bagian || "")
+        .trim()
+        .toUpperCase();
+    const userKelompok = String(user?.user_kelompok || "")
+        .trim()
+        .toUpperCase();
     const isAdmin = ["ADMIN", "IT"].includes(userBagian);
 
     const [tanggal, setTanggal] = useState(
@@ -51,10 +55,17 @@ export default function MonitoringJobPage() {
 
             if (res.ok) {
                 const monitorData = res.data || {};
-                const isNewFormat = monitorData && typeof monitorData === 'object' && 'list' in monitorData;
-                
-                const rowsData = isNewFormat ? (monitorData.list || []) : (res.data || []);
-                const persenData = isNewFormat ? (monitorData.persen || 0) : (res.persen || 0);
+                const isNewFormat =
+                    monitorData &&
+                    typeof monitorData === "object" &&
+                    "list" in monitorData;
+
+                const rowsData = isNewFormat
+                    ? monitorData.list || []
+                    : res.data || [];
+                const persenData = isNewFormat
+                    ? monitorData.persen || 0
+                    : res.persen || 0;
 
                 setRows(rowsData);
                 setAvg(persenData);
@@ -123,8 +134,9 @@ export default function MonitoringJobPage() {
 
                 const hasUserKelompok = kelompokData.some(
                     (item) =>
-                        String(item.kelompok || "").trim().toUpperCase() ===
-                        userKelompok,
+                        String(item.kelompok || "")
+                            .trim()
+                            .toUpperCase() === userKelompok,
                 );
 
                 // Jika user bagian JAHIT, default-kan ke kelompok user login.

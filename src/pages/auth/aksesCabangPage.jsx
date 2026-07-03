@@ -1,5 +1,5 @@
 import { BiSolidNoEntry } from "react-icons/bi";
-import { useAuth } from "../context/authProvider";
+import { useAuth } from "../../context/authProvider";
 
 export default function AksesCabangPage() {
     const { logout } = useAuth();

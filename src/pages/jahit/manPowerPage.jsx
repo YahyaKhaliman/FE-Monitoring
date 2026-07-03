@@ -6,11 +6,11 @@ import {
     getManPower,
     saveManPower,
     deleteManPower,
-} from "../services/manPower.service";
-import { useAuth } from "../context/authProvider";
+} from "../../services/manPower.service";
+import { useAuth } from "../../context/authProvider";
 import { toast } from "react-toastify";
 import { MdEdit, MdDelete } from "react-icons/md";
-import { SkeletonTable } from "../components/Skeleton";
+import { SkeletonTable } from "../../components/Skeleton";
 
 function formatDateDDMMYYYY(dateStr) {
     if (!dateStr) return "";
@@ -117,7 +117,10 @@ export default function ManPowerPage() {
             });
             if (!res || !res.ok) {
                 setRows([]);
-                console.error("Gagal load manpower:", res?.message || "Format response tidak valid");
+                console.error(
+                    "Gagal load manpower:",
+                    res?.message || "Format response tidak valid",
+                );
                 return;
             }
             const serverRows = Array.isArray(res.data) ? res.data : [];
@@ -309,7 +312,9 @@ export default function ManPowerPage() {
                                 <tr
                                     key={i}
                                     style={
-                                        i % 2 === 0 ? styles.trEven : styles.trOdd
+                                        i % 2 === 0
+                                            ? styles.trEven
+                                            : styles.trOdd
                                     }
                                 >
                                     <td style={styles.td}>{r.tanggal}</td>

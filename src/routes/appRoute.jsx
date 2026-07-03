@@ -2,18 +2,18 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { loadUser } from "../utils/storage";
 import { useAuth } from "../context/authProvider";
 
-import LoginPage from "../pages/loginPage";
-import MenuPage from "../pages/menuPage";
-import SpkTargetPage from "../pages/spkTargetPage";
-import ManPowerPage from "../pages/manPowerPage";
-import RealisasiPage from "../pages/realisasiPage";
-import MonitoringJobPage from "../pages/monitoringJobPage";
-import ChangePasswordPage from "../pages/changePasswordPage";
-import LaporanPage from "../pages/laporanSatuPage";
+import LoginPage from "../pages/auth/loginPage";
+import MenuPage from "../pages/jahit/menuPage";
+import SpkTargetPage from "../pages/jahit/spkTargetPage";
+import ManPowerPage from "../pages/jahit/manPowerPage";
+import RealisasiPage from "../pages/jahit/realisasiPage";
+import MonitoringJobPage from "../pages/jahit/monitoringJobPage";
+import ChangePasswordPage from "../pages/auth/changePasswordPage";
+import LaporanPage from "../pages/owner/laporanSatuPage";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import DalamPengembanganPage from "../pages/dalamPengembanganPage";
-import AksesCabangPage from "../pages/aksesCabangPage";
+import DalamPengembanganPage from "../pages/auth/dalamPengembanganPage";
+import AksesCabangPage from "../pages/auth/aksesCabangPage";
 
 function AuthRoute({ allow, children }) {
     const user = loadUser();
