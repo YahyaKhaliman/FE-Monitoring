@@ -477,7 +477,7 @@ export default function LaporanPage() {
                                         margin={{
                                             top: 12,
                                             right: 10,
-                                            left: isMobile ? -20 : -10,
+                                            left: isMobile ? 5 : 10,
                                             bottom: 0,
                                         }}
                                     >
@@ -636,7 +636,7 @@ export default function LaporanPage() {
                                         margin={{
                                             top: 8,
                                             right: 50,
-                                            left: isMobile ? -15 : -5,
+                                            left: isMobile ? 15 : 25,
                                             bottom: 0,
                                         }}
                                     >
