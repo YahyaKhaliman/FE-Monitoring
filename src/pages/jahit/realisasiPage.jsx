@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Fragment } from "react";
 import {
     getRealisasi,
     getJamOptions,
@@ -145,6 +145,36 @@ export default function RealisasiJobPage() {
             return nomor.includes(keyword) || nama.includes(keyword);
         });
     }, [spkListSource, spkKeyword]);
+
+    const groupedByJam = useMemo(() => {
+        const groups = {};
+        data.forEach((item) => {
+            const key = item.jam || "Lainnya";
+            if (!groups[key]) {
+                groups[key] = [];
+            }
+            groups[key].push(item);
+        });
+
+        return Object.keys(groups)
+            .sort((a, b) => {
+                const na = parseInt(a, 10);
+                const nb = parseInt(b, 10);
+                if (!isNaN(na) && !isNaN(nb)) return na - nb;
+                return a.localeCompare(b);
+            })
+            .map((jam) => {
+                const items = groups[jam];
+                const totalTarget = items.reduce((sum, item) => sum + Number(item.mr_target || 0), 0);
+                const totalRealisasi = items.reduce((sum, item) => sum + Number(item.mr_realisasi || 0), 0);
+                return {
+                    jam,
+                    items,
+                    totalTarget,
+                    totalRealisasi,
+                };
+            });
+    }, [data]);
 
     const parseTimestamp = (value) => {
         const t = new Date(value || 0).getTime();
@@ -548,31 +578,42 @@ export default function RealisasiJobPage() {
                                 </div>
                             ))}
                         </div>
-                    ) : data.length === 0 ? (
+                    ) : groupedByJam.length === 0 ? (
                         <div style={styles.empty}>Tidak ada data realisasi di kelompok ini</div>
                     ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                            {data.map((d, i) => (
-                                <div key={i} style={styles.mobileCard}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                            {groupedByJam.map((g, idx) => (
+                                <div key={idx} style={styles.mobileCard}>
                                     <div style={styles.cardHeader}>
-                                        <span style={styles.cardJamBadge}>Jam {d.jam}</span>
-                                        <span style={styles.cardLiniBadge}>{d.lini} • {d.kelompok}</span>
+                                        <span style={styles.cardJamBadge}>Jam {g.jam}</span>
+                                        <span style={{ fontSize: "11px", color: "#2563EB", fontWeight: 800, background: "#EFF6FF", padding: "4px 8px", borderRadius: "6px" }}>
+                                            T: {g.totalTarget} • R: {g.totalRealisasi}
+                                        </span>
                                     </div>
-                                    <div style={styles.cardBody}>
-                                        <div style={styles.cardSpkInfo}>
-                                            <div style={styles.cardSpkName}>{d.spk_nama}</div>
-                                            <div style={styles.cardSpkDate}>{formatDate(d.tanggal)}</div>
-                                        </div>
-                                        <div style={styles.cardStatsGrid}>
-                                            <div style={styles.cardStatBoxTarget}>
-                                                <span style={styles.cardStatLabel}>Target</span>
-                                                <span style={styles.cardStatVal}>{d.mr_target}</span>
+                                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                                        {g.items.map((d, i) => (
+                                            <div key={i} style={{
+                                                paddingTop: i > 0 ? 12 : 0,
+                                                borderTop: i > 0 ? "1px solid #F3F4F6" : "none",
+                                            }}>
+                                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 6 }}>
+                                                    <div style={styles.cardSpkInfo}>
+                                                        <div style={styles.cardSpkName}>{d.spk_nama}</div>
+                                                        <div style={styles.cardSpkDate}>{d.lini} • {d.kelompok}</div>
+                                                    </div>
+                                                </div>
+                                                <div style={styles.cardStatsGrid}>
+                                                    <div style={styles.cardStatBoxTarget}>
+                                                        <span style={styles.cardStatLabel}>Target</span>
+                                                        <span style={styles.cardStatVal}>{d.mr_target}</span>
+                                                    </div>
+                                                    <div style={styles.cardStatBoxRealisasi}>
+                                                        <span style={styles.cardStatLabel}>Realisasi</span>
+                                                        <span style={styles.cardStatVal}>{d.mr_realisasi}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div style={styles.cardStatBoxRealisasi}>
-                                                <span style={styles.cardStatLabel}>Realisasi</span>
-                                                <span style={styles.cardStatVal}>{d.mr_realisasi}</span>
-                                            </div>
-                                        </div>
+                                        ))}
                                     </div>
                                 </div>
                             ))}
@@ -585,7 +626,6 @@ export default function RealisasiJobPage() {
                     <table style={styles.table}>
                         <thead>
                             <tr>
-                                <th style={styles.th}>Jam</th>
                                 <th style={styles.th}>Identitas Barang / SPK</th>
                                 <th style={styles.thHighlight}>Target</th>
                                 <th style={styles.thHighlight}>Realisasi</th>
@@ -595,43 +635,57 @@ export default function RealisasiJobPage() {
                         </thead>
                         <tbody>
                             {loading ? (
-                                <SkeletonTable cols={6} rows={5} />
-                            ) : data.length === 0 ? (
+                                <SkeletonTable cols={5} rows={5} />
+                            ) : groupedByJam.length === 0 ? (
                                 <tr>
-                                    <td style={styles.tdEmpty} colSpan={6}>
+                                    <td style={styles.tdEmpty} colSpan={5}>
                                         Tidak ada data realisasi di kelompok ini
                                     </td>
                                 </tr>
                             ) : (
-                                data.map((d, i) => (
-                                    <tr
-                                        key={i}
-                                        style={
-                                            i % 2 === 0
-                                                ? styles.trEven
-                                                : styles.trOdd
-                                        }
-                                    >
-                                        <td style={styles.tdJam}>Jam {d.jam}</td>
-                                        <td style={styles.td}>
-                                            <div style={styles.spkName}>
-                                                {d.spk_nama}
-                                            </div>
-                                            <div style={styles.spkDate}>
-                                                {formatDate(d.tanggal)}
-                                            </div>
-                                        </td>
-                                        <td style={styles.tdTarget}>
-                                            {d.mr_target}
-                                        </td>
-                                        <td style={styles.tdRealisasi}>
-                                            {d.mr_realisasi}
-                                        </td>
-                                        <td style={styles.tdCenter}>
-                                            {d.kelompok}
-                                        </td>
-                                        <td style={styles.tdCenter}>{d.lini}</td>
-                                    </tr>
+                                groupedByJam.map((g, gIdx) => (
+                                    <Fragment key={gIdx}>
+                                        {/* Baris Pemisah Jam */}
+                                        <tr>
+                                            <td colSpan={5} style={styles.tdJamHeader}>
+                                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                                    <span style={{ fontWeight: 800 }}>⏰ JAM {g.jam}</span>
+                                                    <span style={{ fontSize: "11px", fontWeight: 800 }}>
+                                                        TOTAL TARGET: {g.totalTarget} &nbsp;•&nbsp; TOTAL REALISASI: {g.totalRealisasi}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {g.items.map((d, i) => (
+                                            <tr
+                                                key={`${gIdx}-${i}`}
+                                                style={
+                                                    i % 2 === 0
+                                                        ? styles.trEven
+                                                        : styles.trOdd
+                                                }
+                                            >
+                                                <td style={styles.td}>
+                                                    <div style={styles.spkName}>
+                                                        {d.spk_nama}
+                                                    </div>
+                                                    <div style={styles.spkDate}>
+                                                        {formatDate(d.tanggal)}
+                                                    </div>
+                                                </td>
+                                                <td style={styles.tdTarget}>
+                                                    {d.mr_target}
+                                                </td>
+                                                <td style={styles.tdRealisasi}>
+                                                    {d.mr_realisasi}
+                                                </td>
+                                                <td style={styles.tdCenter}>
+                                                    {d.kelompok}
+                                                </td>
+                                                <td style={styles.tdCenter}>{d.lini}</td>
+                                            </tr>
+                                        ))}
+                                    </Fragment>
                                 ))
                             )}
                         </tbody>
@@ -1212,6 +1266,15 @@ const styles = {
         borderBottom: "1px solid #F3F4F6",
         textAlign: "center",
         fontSize: 13,
+    },
+    tdJamHeader: {
+        padding: "10px 16px",
+        background: "#EFF6FF",
+        borderTop: "2px solid #DBEAFE",
+        borderBottom: "2px solid #DBEAFE",
+        fontSize: 13,
+        fontWeight: 800,
+        color: "#1E40AF",
     },
     empty: {
         padding: "40px",
