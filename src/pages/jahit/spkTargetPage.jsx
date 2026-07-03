@@ -31,7 +31,7 @@ export default function SpkTargetPage() {
 
     // --- Responsive Detection ---
     const [windowWidth, setWindowWidth] = useState(
-        typeof window !== "undefined" ? window.innerWidth : 1024
+        typeof window !== "undefined" ? window.innerWidth : 1024,
     );
 
     useEffect(() => {
@@ -218,17 +218,21 @@ export default function SpkTargetPage() {
     }, [rows, searchTerm]);
 
     return (
-        <div style={{
-            ...styles.page,
-            padding: isMobile ? "12px" : "20px",
-        }}>
-            <div style={{
-                ...styles.header,
-                flexDirection: isMobile ? "column" : "row",
-                alignItems: isMobile ? "stretch" : "center",
-                gap: isMobile ? "16px" : "12px",
-                padding: isMobile ? "16px" : "15px 20px",
-            }}>
+        <div
+            style={{
+                ...styles.page,
+                padding: isMobile ? "12px" : "20px",
+            }}
+        >
+            <div
+                style={{
+                    ...styles.header,
+                    flexDirection: isMobile ? "column" : "row",
+                    alignItems: isMobile ? "stretch" : "center",
+                    gap: isMobile ? "16px" : "12px",
+                    padding: isMobile ? "16px" : "15px 20px",
+                }}
+            >
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <button
                         style={styles.btnGhost}
@@ -243,12 +247,14 @@ export default function SpkTargetPage() {
                         </div>
                     </div>
                 </div>
-                <div style={{
-                    display: "flex",
-                    gap: 8,
-                    width: isMobile ? "100%" : "auto",
-                    justifyContent: isMobile ? "stretch" : "flex-end"
-                }}>
+                <div
+                    style={{
+                        display: "flex",
+                        gap: 8,
+                        width: isMobile ? "100%" : "auto",
+                        justifyContent: isMobile ? "stretch" : "flex-end",
+                    }}
+                >
                     <button
                         style={{
                             ...styles.btnSecondary,
@@ -282,22 +288,29 @@ export default function SpkTargetPage() {
                                 setOpenForm(true);
                             }}
                         >
-                            + Tambah
+                            + Tambah SPK
                         </button>
                     )}
                 </div>
             </div>
 
-            <div style={{
-                ...styles.filters,
-                flexDirection: isMobile ? "column" : "row",
-                alignItems: isMobile ? "stretch" : "end",
-                gap: isMobile ? 16 : 12,
-                padding: isMobile ? "16px" : "15px 20px",
-            }}>
+            <div
+                style={{
+                    ...styles.filters,
+                    flexDirection: isMobile ? "column" : "row",
+                    alignItems: isMobile ? "stretch" : "end",
+                    gap: isMobile ? 16 : 12,
+                    padding: isMobile ? "16px" : "15px 20px",
+                }}
+            >
                 <div style={{ flex: 1, width: "100%" }}>
                     <label style={styles.label}>Pilih Lini Produksi</label>
-                    <div style={{ ...styles.selectWrap, maxWidth: isMobile ? "none" : "300px" }}>
+                    <div
+                        style={{
+                            ...styles.selectWrap,
+                            maxWidth: isMobile ? "none" : "300px",
+                        }}
+                    >
                         <select
                             value={selectedLini}
                             onChange={(e) => {
@@ -311,7 +324,10 @@ export default function SpkTargetPage() {
                                     setIsLiniOpen(false);
                                 }
                             }}
-                            style={{ ...styles.select, maxWidth: isMobile ? "none" : "300px" }}
+                            style={{
+                                ...styles.select,
+                                maxWidth: isMobile ? "none" : "300px",
+                            }}
                         >
                             {liniList.map((l) => (
                                 <option
@@ -335,7 +351,12 @@ export default function SpkTargetPage() {
 
                 <div style={{ flex: 1, width: "100%" }}>
                     <label style={styles.label}>Cari SPK / Nama Produk</label>
-                    <div style={{ ...styles.searchWrap, maxWidth: isMobile ? "none" : "420px" }}>
+                    <div
+                        style={{
+                            ...styles.searchWrap,
+                            maxWidth: isMobile ? "none" : "420px",
+                        }}
+                    >
                         <input
                             type="text"
                             value={searchTerm}
@@ -349,7 +370,7 @@ export default function SpkTargetPage() {
                                 onClick={() => setSearchTerm("")}
                                 style={styles.clearSearchBtn}
                             >
-                                <RxCross1 />
+                                ×
                             </button>
                         )}
                     </div>
@@ -360,16 +381,62 @@ export default function SpkTargetPage() {
                 /* Tampilan Card untuk Mobile */
                 <div style={styles.cardList}>
                     {loading ? (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 12,
+                            }}
+                        >
                             {[1, 2, 3].map((n) => (
                                 <div key={n} style={styles.mobileCard}>
-                                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
-                                        <div className="skeleton" style={{ width: "120px", height: "20px", borderRadius: "4px" }}></div>
-                                        <div className="skeleton" style={{ width: "80px", height: "36px", borderRadius: "8px" }}></div>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            justifyContent: "space-between",
+                                            marginBottom: 12,
+                                        }}
+                                    >
+                                        <div
+                                            className="skeleton"
+                                            style={{
+                                                width: "120px",
+                                                height: "20px",
+                                                borderRadius: "4px",
+                                            }}
+                                        ></div>
+                                        <div
+                                            className="skeleton"
+                                            style={{
+                                                width: "80px",
+                                                height: "36px",
+                                                borderRadius: "8px",
+                                            }}
+                                        ></div>
                                     </div>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                                        <div className="skeleton" style={{ width: "100%", height: "16px", borderRadius: "4px" }}></div>
-                                        <div className="skeleton" style={{ width: "60px", height: "24px", borderRadius: "4px" }}></div>
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: 8,
+                                        }}
+                                    >
+                                        <div
+                                            className="skeleton"
+                                            style={{
+                                                width: "100%",
+                                                height: "16px",
+                                                borderRadius: "4px",
+                                            }}
+                                        ></div>
+                                        <div
+                                            className="skeleton"
+                                            style={{
+                                                width: "60px",
+                                                height: "24px",
+                                                borderRadius: "4px",
+                                            }}
+                                        ></div>
                                     </div>
                                 </div>
                             ))}
@@ -377,13 +444,23 @@ export default function SpkTargetPage() {
                     ) : filteredRows.length === 0 ? (
                         <div style={styles.empty}>Data tidak ditemukan</div>
                     ) : (
-                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 12,
+                            }}
+                        >
                             {filteredRows.map((r) => (
                                 <div key={r.nomor} style={styles.mobileCard}>
                                     <div style={styles.cardHeader}>
                                         <div style={styles.cardTitleWrap}>
-                                            <span style={styles.cardLabel}>No. SPK</span>
-                                            <span style={styles.cardNomor}>{r.nomor}</span>
+                                            <span style={styles.cardLabel}>
+                                                No. SPK
+                                            </span>
+                                            <span style={styles.cardNomor}>
+                                                {r.nomor}
+                                            </span>
                                         </div>
                                         {isAdmin && (
                                             <div style={styles.cardActions}>
@@ -393,7 +470,9 @@ export default function SpkTargetPage() {
                                                         setEditMode(true);
                                                         setNomor(r.nomor);
                                                         setNama(r.nama);
-                                                        setTargetPerJam(r.target);
+                                                        setTargetPerJam(
+                                                            r.target,
+                                                        );
                                                         setSpkClosed(false);
                                                         setOpenForm(true);
                                                     }}
@@ -401,7 +480,9 @@ export default function SpkTargetPage() {
                                                     <MdEdit size={18} />
                                                 </button>
                                                 <button
-                                                    style={styles.btnDeleteMobile}
+                                                    style={
+                                                        styles.btnDeleteMobile
+                                                    }
                                                     onClick={() => onDelete(r)}
                                                 >
                                                     <MdDelete size={18} />
@@ -411,12 +492,20 @@ export default function SpkTargetPage() {
                                     </div>
                                     <div style={styles.cardBody}>
                                         <div style={styles.cardField}>
-                                            <span style={styles.cardFieldLabel}>Nama Produk</span>
-                                            <span style={styles.cardFieldVal}>{r.nama || "-"}</span>
+                                            <span style={styles.cardFieldLabel}>
+                                                Nama Produk
+                                            </span>
+                                            <span style={styles.cardFieldVal}>
+                                                {r.nama || "-"}
+                                            </span>
                                         </div>
                                         <div style={styles.cardFieldTarget}>
-                                            <span style={styles.cardFieldLabel}>Target / Jam</span>
-                                            <span style={styles.cardTargetVal}>{r.target} pcs</span>
+                                            <span style={styles.cardFieldLabel}>
+                                                Target / Jam
+                                            </span>
+                                            <span style={styles.cardTargetVal}>
+                                                {r.target}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -433,12 +522,17 @@ export default function SpkTargetPage() {
                                 <th style={styles.th}>Nomor SPK</th>
                                 <th style={styles.th}>Nama Produk</th>
                                 <th style={styles.thCenter}>Target/Jam</th>
-                                {isAdmin && <th style={styles.thCenter}>Aksi</th>}
+                                {isAdmin && (
+                                    <th style={styles.thCenter}>Aksi</th>
+                                )}
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
-                                <SkeletonTable cols={isAdmin ? 4 : 3} rows={5} />
+                                <SkeletonTable
+                                    cols={isAdmin ? 4 : 3}
+                                    rows={5}
+                                />
                             ) : (
                                 filteredRows.map((r, i) => (
                                     <tr
@@ -449,9 +543,15 @@ export default function SpkTargetPage() {
                                                 : styles.trOdd
                                         }
                                     >
-                                        <td style={styles.tdNomor}>{r.nomor}</td>
-                                        <td style={styles.td}>{r.nama || "-"}</td>
-                                        <td style={styles.tdTarget}>{r.target}</td>
+                                        <td style={styles.tdNomor}>
+                                            {r.nomor}
+                                        </td>
+                                        <td style={styles.td}>
+                                            {r.nama || "-"}
+                                        </td>
+                                        <td style={styles.tdTarget}>
+                                            {r.target}
+                                        </td>
                                         {isAdmin && (
                                             <td style={styles.tdCenter}>
                                                 <button
@@ -460,7 +560,9 @@ export default function SpkTargetPage() {
                                                         setEditMode(true);
                                                         setNomor(r.nomor);
                                                         setNama(r.nama);
-                                                        setTargetPerJam(r.target);
+                                                        setTargetPerJam(
+                                                            r.target,
+                                                        );
                                                         setSpkClosed(false);
                                                         setOpenForm(true);
                                                     }}
@@ -683,7 +785,13 @@ const styles = {
         pointerEvents: "none",
         transition: "transform 180ms ease",
     },
-    searchWrap: { position: "relative", width: "100%", maxWidth: "420px" },
+    searchWrap: {
+        position: "relative",
+        width: "100%",
+        maxWidth: "420px",
+        display: "flex",
+        alignItems: "center",
+    },
     searchInput: {
         width: "100%",
         height: "40px",
@@ -696,23 +804,11 @@ const styles = {
     clearSearchBtn: {
         position: "absolute",
         right: 10,
-        top: "50%",
-        transform: "translateY(-50%)",
-        width: 24,
-        height: 24,
-        borderRadius: "50%",
-        border: "1px solid #D1D5DB",
-        background: "#fff",
-        color: "#6B7280",
+        background: "transparent",
+        border: "none",
         cursor: "pointer",
-        lineHeight: "20px",
-        fontSize: "16px",
-        fontWeight: 700,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 0,
-        zIndex: 1,
+        fontSize: "20px",
+        color: "#B34E33",
     },
     tableWrap: {
         background: "#fff",

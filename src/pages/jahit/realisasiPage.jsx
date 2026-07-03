@@ -12,14 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { MdSearch } from "react-icons/md";
 import { SkeletonTable } from "../../components/Skeleton";
-
-function formatDateDDMMYYYY(dateStr) {
-    if (!dateStr) return "-";
-    const dateOnly = String(dateStr).split("T")[0];
-    const [y, m, d] = dateOnly.split("-");
-    if (!y || !m || !d) return dateStr;
-    return `${d}-${m}-${y}`;
-}
+import { formatDate } from "../../utils/date";
 
 export default function RealisasiJobPage() {
     const navigate = useNavigate();
@@ -535,7 +528,7 @@ export default function RealisasiJobPage() {
                                             {d.spk_nama}
                                         </div>
                                         <div style={styles.spkDate}>
-                                            {formatDateDDMMYYYY(d.tanggal)}
+                                            {formatDate(d.tanggal)}
                                         </div>
                                     </td>
                                     <td style={styles.tdTarget}>

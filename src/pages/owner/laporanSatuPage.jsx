@@ -11,6 +11,8 @@ import {
     SkeletonTable,
 } from "../../components/Skeleton";
 
+import { formatDate, toISO } from "../../utils/date";
+
 import {
     BarChart,
     Bar,
@@ -23,19 +25,8 @@ import {
     LabelList,
 } from "recharts";
 
-function toISO(d) {
-    return new Date(d).toISOString().slice(0, 10);
-}
-function formatDateIndo(dateStr) {
-    if (!dateStr) return "";
-    const [y, m, d] = dateStr.split("-");
-    return `${d}/${m}/${y}`;
-}
-function formatDateFE(dateStr) {
-    const dateOnly = dateStr.split("T")[0];
-    const [y, m, d] = dateOnly.split("-");
-    return `${d}/${m}/${y}`;
-}
+const formatDateIndo = formatDate;
+const formatDateFE = formatDate;
 function formatNumber(n) {
     return Number(n || 0).toLocaleString("id-ID");
 }
