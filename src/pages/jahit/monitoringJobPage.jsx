@@ -8,6 +8,7 @@ import {
 import { loadUser } from "../../utils/storage";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authProvider";
+import { MdArrowBack } from "react-icons/md";
 
 export default function MonitoringJobPage() {
     const navigate = useNavigate();
@@ -180,8 +181,9 @@ export default function MonitoringJobPage() {
                     <button
                         style={styles.btnBack}
                         onClick={() => navigate("/menu")}
+                        aria-label="Kembali"
                     >
-                        ← Back
+                        <MdArrowBack size={20} />
                     </button>
                     <div>
                         <div style={styles.title}>
@@ -553,12 +555,19 @@ const styles = {
     },
 
     btnBack: {
-        background: "none",
+        background: "#F3F4F6",
         border: "none",
-        color: "#6B7280",
-        fontWeight: 700,
+        color: "#4B5563",
+        width: "40px",
+        height: "40px",
+        borderRadius: "50%",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
         cursor: "pointer",
-        fontSize: "14px",
+        transition: "all 0.2s ease",
+        outline: "none",
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
     },
     btnRefresh: {
         height: 38,

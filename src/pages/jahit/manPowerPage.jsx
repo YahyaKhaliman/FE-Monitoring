@@ -9,7 +9,7 @@ import {
 } from "../../services/manPower.service";
 import { useAuth } from "../../context/authProvider";
 import { toast } from "react-toastify";
-import { MdEdit, MdDelete } from "react-icons/md";
+import { MdEdit, MdDelete, MdArrowBack } from "react-icons/md";
 import { SkeletonTable } from "../../components/Skeleton";
 import { formatDate } from "../../utils/date";
 
@@ -260,10 +260,11 @@ export default function ManPowerPage() {
             }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <button
-                        style={styles.btnGhost}
+                        style={styles.btnBack}
                         onClick={() => navigate("/menu")}
+                        aria-label="Kembali"
                     >
-                        ← Back
+                        <MdArrowBack size={20} />
                     </button>
                     <div>
                         <div style={styles.title}>Man Power Management</div>
@@ -694,12 +695,20 @@ const styles = {
         alignItems: "center",
         justifyContent: "center",
     },
-    btnGhost: {
-        background: "none",
+    btnBack: {
+        background: "#F3F4F6",
         border: "none",
-        color: "#6B7280",
-        fontWeight: 600,
+        color: "#4B5563",
+        width: "40px",
+        height: "40px",
+        borderRadius: "50%",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
         cursor: "pointer",
+        transition: "all 0.2s ease",
+        outline: "none",
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
     },
 
     btnEdit: {

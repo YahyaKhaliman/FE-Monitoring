@@ -10,12 +10,21 @@ import { getManPower } from "../../services/manPower.service";
 import { loadUser } from "../../utils/storage";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { MdSearch } from "react-icons/md";
+import { MdSearch, MdArrowBack } from "react-icons/md";
 import { SkeletonTable } from "../../components/Skeleton";
 import { formatDate } from "../../utils/date";
 
 export default function RealisasiJobPage() {
     const navigate = useNavigate();
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    const isMobile = windowWidth <= 600;
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
     const user = useMemo(() => loadUser(), []);
     const isAdmin = ["ADMIN", "IT"].includes(
         (user?.user_bagian || "").toUpperCase(),
@@ -388,24 +397,43 @@ export default function RealisasiJobPage() {
     }, [openForm, form.tanggal, form.lini, form.kelompok]);
 
     return (
-        <div style={styles.page}>
+        <div style={{
+            ...styles.page,
+            padding: isMobile ? "12px" : "32px 20px",
+        }}>
             {/* HEADER */}
-            <div style={styles.header}>
+            <div style={{
+                ...styles.header,
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: isMobile ? "stretch" : "center",
+                gap: isMobile ? "16px" : "12px",
+                padding: isMobile ? "16px" : "20px 24px",
+            }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <button
                         style={styles.btnBack}
                         onClick={() => navigate("/menu")}
+                        aria-label="Kembali"
                     >
-                        ← Back
+                        <MdArrowBack size={20} />
                     </button>
                     <div>
                         <div style={styles.title}>REALISASI JOB PRODUKSI</div>
                         <div style={styles.sub}>{userLabel}</div>
                     </div>
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{
+                    display: "flex",
+                    gap: 8,
+                    width: isMobile ? "100%" : "auto",
+                    justifyContent: isMobile ? "stretch" : "flex-end"
+                }}>
                     <button
-                        style={styles.btnSecondary}
+                        style={{
+                            ...styles.btnSecondary,
+                            flex: isMobile ? 1 : "none",
+                            height: "44px",
+                        }}
                         onClick={() =>
                             toast.promise(refreshData(), {
                                 pending: "Memuat realisasi...",
@@ -420,6 +448,8 @@ export default function RealisasiJobPage() {
                     <button
                         style={{
                             ...styles.btnPrimary,
+                            flex: isMobile ? 1 : "none",
+                            height: "44px",
                             opacity: 1,
                             cursor: "pointer",
                         }}
@@ -433,12 +463,18 @@ export default function RealisasiJobPage() {
             </div>
 
             {/* FILTERS PANEL */}
-            <div style={styles.filters}>
-                <div style={styles.filterGroup}>
+            <div style={{
+                ...styles.filters,
+                flexDirection: isMobile ? "column" : "row",
+                alignItems: isMobile ? "stretch" : "end",
+                gap: isMobile ? 16 : 12,
+                padding: isMobile ? "16px" : "16px 20px",
+            }}>
+                <div style={{ ...styles.filterGroup, width: "100%" }}>
                     <label style={styles.label}>Tanggal</label>
                     <input
                         type="date"
-                        style={styles.input}
+                        style={{ ...styles.input, width: "100%", boxSizing: "border-box" }}
                         value={tanggal}
                         onChange={(e) => setTanggal(e.target.value)}
                     />
@@ -446,10 +482,10 @@ export default function RealisasiJobPage() {
 
                 {isAdmin && (
                     <>
-                        <div style={styles.filterGroup}>
+                        <div style={{ ...styles.filterGroup, width: "100%" }}>
                             <label style={styles.label}>Lini Produksi</label>
                             <select
-                                style={styles.select}
+                                style={{ ...styles.select, width: "100%", boxSizing: "border-box", height: 40 }}
                                 value={lini}
                                 onChange={(e) => setLini(e.target.value)}
                             >
@@ -458,10 +494,10 @@ export default function RealisasiJobPage() {
                                 <option value="FINISHING">FINISHING</option>
                             </select>
                         </div>
-                        <div style={styles.filterGroup}>
+                        <div style={{ ...styles.filterGroup, width: "100%" }}>
                             <label style={styles.label}>Kelompok</label>
                             <select
-                                style={styles.select}
+                                style={{ ...styles.select, width: "100%", boxSizing: "border-box", height: 40 }}
                                 value={kelompok}
                                 onChange={(e) => setKelompok(e.target.value)}
                             >
@@ -476,11 +512,13 @@ export default function RealisasiJobPage() {
                     </>
                 )}
                 {!isAdmin && (
-                    <div style={styles.filterGroup}>
+                    <div style={{ ...styles.filterGroup, width: "100%" }}>
                         <label style={styles.label}>Kelompok</label>
                         <input
                             style={{
                                 ...styles.input,
+                                width: "100%",
+                                boxSizing: "border-box",
                                 backgroundColor: "#F3F4F6",
                             }}
                             value={user.user_kelompok}
@@ -490,63 +528,116 @@ export default function RealisasiJobPage() {
                 )}
             </div>
 
-            {/* DATA TABLE */}
-            <div style={styles.tableWrap}>
-                <table style={styles.table}>
-                    <thead>
-                        <tr>
-                            <th style={styles.th}>Jam</th>
-                            <th style={styles.th}>Identitas Barang / SPK</th>
-                            <th style={styles.thHighlight}>Target</th>
-                            <th style={styles.thHighlight}>Realisasi</th>
-                            <th style={styles.thCenter}>Kelompok</th>
-                            <th style={styles.thCenter}>Lini</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            <SkeletonTable cols={6} rows={5} />
-                        ) : data.length === 0 ? (
+            {/* DATA SECTION */}
+            {isMobile ? (
+                /* Tampilan Card untuk Mobile */
+                <div style={styles.cardList}>
+                    {loading ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                            {[1, 2, 3].map((n) => (
+                                <div key={n} style={styles.mobileCard}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                                        <div className="skeleton" style={{ width: "100px", height: "20px", borderRadius: "4px" }} />
+                                        <div className="skeleton" style={{ width: "60px", height: "16px", borderRadius: "4px" }} />
+                                    </div>
+                                    <div className="skeleton" style={{ width: "100%", height: "24px", borderRadius: "4px", marginBottom: 8 }} />
+                                    <div style={{ display: "flex", gap: 8 }}>
+                                        <div className="skeleton" style={{ flex: 1, height: "32px", borderRadius: "8px" }} />
+                                        <div className="skeleton" style={{ flex: 1, height: "32px", borderRadius: "8px" }} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : data.length === 0 ? (
+                        <div style={styles.empty}>Tidak ada data realisasi di kelompok ini</div>
+                    ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                            {data.map((d, i) => (
+                                <div key={i} style={styles.mobileCard}>
+                                    <div style={styles.cardHeader}>
+                                        <span style={styles.cardJamBadge}>Jam {d.jam}</span>
+                                        <span style={styles.cardLiniBadge}>{d.lini} • {d.kelompok}</span>
+                                    </div>
+                                    <div style={styles.cardBody}>
+                                        <div style={styles.cardSpkInfo}>
+                                            <div style={styles.cardSpkName}>{d.spk_nama}</div>
+                                            <div style={styles.cardSpkDate}>{formatDate(d.tanggal)}</div>
+                                        </div>
+                                        <div style={styles.cardStatsGrid}>
+                                            <div style={styles.cardStatBoxTarget}>
+                                                <span style={styles.cardStatLabel}>Target</span>
+                                                <span style={styles.cardStatVal}>{d.mr_target}</span>
+                                            </div>
+                                            <div style={styles.cardStatBoxRealisasi}>
+                                                <span style={styles.cardStatLabel}>Realisasi</span>
+                                                <span style={styles.cardStatVal}>{d.mr_realisasi}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ) : (
+                /* Tampilan Tabel untuk Tablet & Desktop */
+                <div style={styles.tableWrap}>
+                    <table style={styles.table}>
+                        <thead>
                             <tr>
-                                <td style={styles.tdEmpty} colSpan={6}>
-                                    Tidak ada data realisasi di kelompok ini
-                                </td>
+                                <th style={styles.th}>Jam</th>
+                                <th style={styles.th}>Identitas Barang / SPK</th>
+                                <th style={styles.thHighlight}>Target</th>
+                                <th style={styles.thHighlight}>Realisasi</th>
+                                <th style={styles.thCenter}>Kelompok</th>
+                                <th style={styles.thCenter}>Lini</th>
                             </tr>
-                        ) : (
-                            data.map((d, i) => (
-                                <tr
-                                    key={i}
-                                    style={
-                                        i % 2 === 0
-                                            ? styles.trEven
-                                            : styles.trOdd
-                                    }
-                                >
-                                    <td style={styles.tdJam}>Jam {d.jam}</td>
-                                    <td style={styles.td}>
-                                        <div style={styles.spkName}>
-                                            {d.spk_nama}
-                                        </div>
-                                        <div style={styles.spkDate}>
-                                            {formatDate(d.tanggal)}
-                                        </div>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <SkeletonTable cols={6} rows={5} />
+                            ) : data.length === 0 ? (
+                                <tr>
+                                    <td style={styles.tdEmpty} colSpan={6}>
+                                        Tidak ada data realisasi di kelompok ini
                                     </td>
-                                    <td style={styles.tdTarget}>
-                                        {d.mr_target}
-                                    </td>
-                                    <td style={styles.tdRealisasi}>
-                                        {d.mr_realisasi}
-                                    </td>
-                                    <td style={styles.tdCenter}>
-                                        {d.kelompok}
-                                    </td>
-                                    <td style={styles.tdCenter}>{d.lini}</td>
                                 </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                            ) : (
+                                data.map((d, i) => (
+                                    <tr
+                                        key={i}
+                                        style={
+                                            i % 2 === 0
+                                                ? styles.trEven
+                                                : styles.trOdd
+                                        }
+                                    >
+                                        <td style={styles.tdJam}>Jam {d.jam}</td>
+                                        <td style={styles.td}>
+                                            <div style={styles.spkName}>
+                                                {d.spk_nama}
+                                            </div>
+                                            <div style={styles.spkDate}>
+                                                {formatDate(d.tanggal)}
+                                            </div>
+                                        </td>
+                                        <td style={styles.tdTarget}>
+                                            {d.mr_target}
+                                        </td>
+                                        <td style={styles.tdRealisasi}>
+                                            {d.mr_realisasi}
+                                        </td>
+                                        <td style={styles.tdCenter}>
+                                            {d.kelompok}
+                                        </td>
+                                        <td style={styles.tdCenter}>{d.lini}</td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
 
             {/* MODAL FORM */}
             {openForm && (
@@ -555,7 +646,13 @@ export default function RealisasiJobPage() {
                     onClick={() => setOpenForm(false)}
                 >
                     <div
-                        style={styles.modal}
+                        style={{
+                            ...styles.modal,
+                            width: isMobile ? "94%" : "min(700px, 95vw)",
+                            padding: isMobile ? "16px" : "24px",
+                            maxHeight: "90vh",
+                            overflowY: "auto",
+                        }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div style={styles.modalHeader}>
@@ -596,12 +693,15 @@ export default function RealisasiJobPage() {
                         </div>
 
                         <form onSubmit={onSave}>
-                            <div style={styles.formGrid}>
+                            <div style={{
+                                ...styles.formGrid,
+                                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+                            }}>
                                 <div style={styles.formGroup}>
                                     <label style={styles.label}>Tanggal</label>
                                     <input
                                         type="date"
-                                        style={styles.input}
+                                        style={{ ...styles.input, width: "100%", boxSizing: "border-box" }}
                                         value={form.tanggal}
                                         onChange={(e) =>
                                             setForm((p) => ({
@@ -617,7 +717,7 @@ export default function RealisasiJobPage() {
                                         Lini Produksi
                                     </label>
                                     <select
-                                        style={styles.select}
+                                        style={{ ...styles.select, width: "100%", boxSizing: "border-box", height: 40 }}
                                         value={form.lini}
                                         onChange={(e) =>
                                             setForm((p) => ({
@@ -638,7 +738,7 @@ export default function RealisasiJobPage() {
                                 <div style={styles.formGroup}>
                                     <label style={styles.label}>Kelompok</label>
                                     <select
-                                        style={styles.select}
+                                        style={{ ...styles.select, width: "100%", boxSizing: "border-box", height: 40 }}
                                         value={form.kelompok}
                                         onChange={(e) =>
                                             setForm((p) => ({
@@ -666,7 +766,7 @@ export default function RealisasiJobPage() {
                                         Jam Produksi
                                     </label>
                                     <select
-                                        style={styles.select}
+                                        style={{ ...styles.select, width: "100%", boxSizing: "border-box", height: 40 }}
                                         value={form.jam}
                                         onChange={(e) =>
                                             setForm((p) => ({
@@ -692,15 +792,23 @@ export default function RealisasiJobPage() {
                                 </div>
 
                                 {/* Nomor SPK Field dengan Style Baru */}
-                                <div style={styles.formGroupFull}>
+                                <div style={{
+                                    ...styles.formGroupFull,
+                                    gridColumn: isMobile ? "span 1" : "span 2",
+                                }}>
                                     <label style={styles.label}>
                                         Nomor SPK
                                     </label>
-                                    <div style={styles.inputWithButton}>
+                                    <div style={{
+                                        ...styles.inputWithButton,
+                                        flexDirection: isMobile ? "column" : "row",
+                                        gap: isMobile ? "8px" : "4px",
+                                    }}>
                                         <input
                                             style={{
                                                 ...styles.input,
-                                                flex: 1,
+                                                width: "100%",
+                                                boxSizing: "border-box",
                                                 textTransform: "uppercase",
                                             }}
                                             value={form.spk}
@@ -713,34 +821,49 @@ export default function RealisasiJobPage() {
                                             }
                                             placeholder="Contoh: JA-KO-001"
                                         />
-                                        <button
-                                            type="button"
-                                            style={styles.btnCariSpkModal}
-                                            onClick={openSpkSearchModal}
-                                            title="Cari SPK berdasarkan nomor atau nama"
-                                        >
-                                            Cari SPK
-                                        </button>
-                                        <button
-                                            type="button"
-                                            style={styles.btnCariSpk}
-                                            onClick={onCariSpk}
-                                            disabled={searchingSpk || !form.spk}
-                                            title="Klik untuk validasi SPK"
-                                        >
-                                            {searchingSpk ? (
-                                                "..."
-                                            ) : (
-                                                <MdSearch size={22} />
-                                            )}
-                                        </button>
+                                        <div style={{
+                                            display: "flex",
+                                            gap: "4px",
+                                            width: isMobile ? "100%" : "auto",
+                                            height: "42px",
+                                        }}>
+                                            <button
+                                                type="button"
+                                                style={{
+                                                    ...styles.btnCariSpkModal,
+                                                    flex: isMobile ? 1 : "none",
+                                                    height: "100%",
+                                                }}
+                                                onClick={openSpkSearchModal}
+                                                title="Cari SPK berdasarkan nomor atau nama"
+                                            >
+                                                Cari SPK
+                                            </button>
+                                            <button
+                                                type="button"
+                                                style={{
+                                                    ...styles.btnCariSpk,
+                                                    width: isMobile ? "60px" : "50px",
+                                                    height: "100%",
+                                                }}
+                                                onClick={onCariSpk}
+                                                disabled={searchingSpk || !form.spk}
+                                                title="Klik untuk validasi SPK"
+                                            >
+                                                {searchingSpk ? (
+                                                    "..."
+                                                ) : (
+                                                    <MdSearch size={22} />
+                                                )}
+                                            </button>
+                                        </div>
                                     </div>
                                     <div
                                         style={{
                                             ...styles.spkResultText,
                                             color: form.nama
                                                 ? "#059669"
-                                                : "#D1D5DB",
+                                                : "#B34E33",
                                         }}
                                     >
                                         {form.nama
@@ -934,7 +1057,7 @@ export default function RealisasiJobPage() {
                                         ))
                                     )}
                                 </tbody>
-                            </table>
+                                </table>
                         </div>
                     </div>
                 </div>
@@ -1009,10 +1132,11 @@ const styles = {
         background: "#fff",
         border: "1px solid #E5E7EB",
         borderRadius: 16,
-        overflow: "hidden",
+        overflowX: "auto",
+        WebkitOverflowScrolling: "touch",
         boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
     },
-    table: { width: "100%", borderCollapse: "collapse" },
+    table: { width: "100%", borderCollapse: "collapse", minWidth: "650px" },
     th: {
         padding: "12px 16px",
         background: "#F9FAFB",
@@ -1050,6 +1174,7 @@ const styles = {
         fontSize: "11px",
         fontWeight: 800,
         textTransform: "uppercase",
+        color: "#4B5563",
     },
 
     td: {
@@ -1088,25 +1213,29 @@ const styles = {
         textAlign: "center",
         fontSize: 13,
     },
-    tdEmpty: {
-        padding: 48,
+    empty: {
+        padding: "40px",
         textAlign: "center",
         color: "#9CA3AF",
         fontStyle: "italic",
     },
-
-    trEven: { background: "#FFFFFF" },
-    trOdd: { background: "#FBFBFA" },
     spkName: { fontWeight: 800, color: "#111827", fontSize: "14px" },
     spkDate: { fontSize: "11px", color: "#9CA3AF", marginTop: 2 },
 
     btnBack: {
-        background: "none",
+        background: "#F3F4F6",
         border: "none",
-        color: "#6B7280",
-        fontWeight: 700,
+        color: "#4B5563",
+        width: "40px",
+        height: "40px",
+        borderRadius: "50%",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
         cursor: "pointer",
-        fontSize: 14,
+        transition: "all 0.2s ease",
+        outline: "none",
+        boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
     },
     btnSecondary: {
         height: 38,
@@ -1117,6 +1246,9 @@ const styles = {
         color: "#374151",
         fontWeight: 700,
         cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
     },
     btnPrimary: {
         height: 38,
@@ -1127,6 +1259,9 @@ const styles = {
         color: "#fff",
         fontWeight: 700,
         cursor: "pointer",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
     },
     modalTitle: { fontSize: 18, fontWeight: 800, color: "#111827" },
     modalSub: {
@@ -1144,11 +1279,11 @@ const styles = {
     modalOverlay: {
         position: "fixed",
         inset: 0,
-        background: "rgba(15, 23, 42, 0.6)", // Overlay lebih gelap agar fokus
+        background: "rgba(15, 23, 42, 0.6)",
         display: "grid",
         placeItems: "center",
         zIndex: 1000,
-        backdropFilter: "blur(4px)", // Efek blur modern
+        backdropFilter: "blur(4px)",
     },
     modal: {
         width: "min(700px, 95vw)",
@@ -1158,6 +1293,7 @@ const styles = {
         padding: "24px",
         boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
         overflowY: "auto",
+        boxSizing: "border-box",
     },
     modalHeader: {
         display: "flex",
@@ -1191,19 +1327,19 @@ const styles = {
     },
     formGrid: {
         display: "grid",
-        gridTemplateColumns: "1fr 1fr", // Dua kolom
+        gridTemplateColumns: "1fr 1fr",
         gap: "16px",
     },
     formGroup: { display: "flex", flexDirection: "column", gap: "6px" },
     formGroupFull: {
-        gridColumn: "span 2", // Melebar memenuhi dua kolom
+        gridColumn: "span 2",
         display: "flex",
         flexDirection: "column",
         gap: "6px",
     },
     inputWithButton: {
         display: "flex",
-        gap: "4px", // Tombol dan input lebih rapat
+        gap: "4px",
         alignItems: "stretch",
     },
     btnCariSpkModal: {
@@ -1251,17 +1387,19 @@ const styles = {
         boxShadow: "0 20px 35px rgba(0,0,0,0.2)",
         overflow: "auto",
         border: "1px solid #E5E7EB",
+        boxSizing: "border-box",
     },
     searchTableWrap: {
         marginTop: 12,
         border: "1px solid #E5E7EB",
         borderRadius: 10,
-        overflow: "hidden",
+        overflowX: "auto",
+        WebkitOverflowScrolling: "touch",
     },
     searchTable: {
         width: "100%",
         borderCollapse: "collapse",
-        tableLayout: "fixed",
+        minWidth: "500px",
     },
     searchTh: {
         textAlign: "left",
@@ -1314,5 +1452,96 @@ const styles = {
         color: "#111827",
         fontWeight: 700,
         cursor: "pointer",
+        minHeight: "36px",
+    },
+
+    /* --- Mobile Card List Styles --- */
+    cardList: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    mobileCard: {
+        background: "#ffffff",
+        border: "1px solid #E5E7EB",
+        borderRadius: "16px",
+        padding: "16px",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.03)",
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    cardHeader: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        borderBottom: "1px solid #F3F4F6",
+        paddingBottom: "10px",
+    },
+    cardJamBadge: {
+        fontSize: "12px",
+        fontWeight: 700,
+        color: "#1E40AF",
+        background: "#E0F2FE",
+        padding: "4px 8px",
+        borderRadius: "6px",
+    },
+    cardLiniBadge: {
+        fontSize: "12px",
+        fontWeight: 600,
+        color: "#4B5563",
+    },
+    cardBody: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+    },
+    cardSpkInfo: {
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+    },
+    cardSpkName: {
+        fontSize: "14px",
+        fontWeight: 800,
+        color: "#111827",
+    },
+    cardSpkDate: {
+        fontSize: "11px",
+        color: "#9CA3AF",
+    },
+    cardStatsGrid: {
+        display: "grid",
+        gridTemplateColumns: "1fr 1fr",
+        gap: "8px",
+    },
+    cardStatBoxTarget: {
+        background: "#F9FAFB",
+        border: "1px solid #E5E7EB",
+        borderRadius: "8px",
+        padding: "8px 12px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+    },
+    cardStatBoxRealisasi: {
+        background: "#FFFBF7",
+        border: "1px solid #F1E9E2",
+        borderRadius: "8px",
+        padding: "8px 12px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "2px",
+    },
+    cardStatLabel: {
+        fontSize: "10px",
+        fontWeight: 700,
+        color: "#6B7280",
+        textTransform: "uppercase",
+        letterSpacing: "0.05em",
+    },
+    cardStatVal: {
+        fontSize: "16px",
+        fontWeight: 800,
     },
 };
