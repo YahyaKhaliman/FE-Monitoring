@@ -94,7 +94,11 @@ export default function LoginPage() {
             if (savePassword) saveCred(normalizedUserKode);
             else clearCred();
 
-            const namaUser = normalizedUser?.user_nama || normalizedUser?.nama || normalizedUser?.name || normalizedUserKode;
+            const namaUser =
+                normalizedUser?.user_nama ||
+                normalizedUser?.nama ||
+                normalizedUser?.name ||
+                normalizedUserKode;
             toast.success(`Login Berhasil!\nSelamat Datang ${namaUser}`, {
                 autoClose: 3000,
                 style: { whiteSpace: "pre-line" },
@@ -112,7 +116,7 @@ export default function LoginPage() {
         <div style={styles.container}>
             <div style={styles.loginCard}>
                 <div style={styles.brandSection}>
-                    <h2 style={styles.title}>{"Monitoring Job"}</h2>
+                    <h2 style={styles.title}>{"MonitoringJob"}</h2>
                     <p style={styles.subtitle}>Selamat datang</p>
                 </div>
 
@@ -184,7 +188,7 @@ export default function LoginPage() {
                     {msg && <div style={styles.errorMessage}>{msg}</div>}
                 </form>
 
-                <div style={styles.footer}>&copy; 2026 Monitoring Job.</div>
+                <div style={styles.footer}>&copy; 2026 MonitoringJob.</div>
             </div>
         </div>
     );

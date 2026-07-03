@@ -251,3 +251,20 @@ button[style*="borderRadius: 16"]:hover {
   opacity: 1 !important;
   color: #B34E33 !important;
 }
+
+/* Responsive Floating Toast untuk Layar HP / Mobile */
+@media (max-width: 480px) {
+  .Toastify__toast-container {
+    width: calc(100% - 32px) !important;
+    left: 16px !important;
+    right: 16px !important;
+    top: 24px !important; /* Jarak aman agar tidak tertutup notch/kamera HP */
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .Toastify__toast {
+    border-radius: 12px !important; /* Menjaga sudut melengkung di HP */
+    margin-bottom: 8px !important;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(179, 78, 51, 0.08) !important; /* Bayangan lebih tegas dan kontras */
+  }
+}
