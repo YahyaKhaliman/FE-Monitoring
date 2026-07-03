@@ -59,52 +59,29 @@ export default function ChangePasswordPage() {
     return (
         <div style={{
             ...styles.page,
-            background: isMobile ? "#ffffff" : "#F9FAFB",
-            padding: isMobile ? 0 : "24px",
-            justifyContent: isMobile ? "flex-start" : "center",
+            background: "#F9FAFB",
+            padding: "24px 16px",
+            justifyContent: "center",
         }}>
-            {/* MOBILE NAVBAR */}
-            {isMobile && (
-                <div style={styles.mobileNavbar}>
-                    <button
-                        style={styles.mobileNavBack}
-                        onClick={() => nav("/menu")}
-                        aria-label="Kembali"
-                    >
-                        <MdArrowBack size={24} color="#111827" />
-                    </button>
-                    <span style={styles.mobileNavTitle}>Ganti Password</span>
-                    <div style={{ width: 40 }} />
-                </div>
-            )}
-
             {/* MAIN CONTENT AREA */}
             <div style={{
                 ...styles.card,
-                width: isMobile ? "100%" : 400,
-                padding: isMobile ? "24px 16px" : "40px 32px",
-                border: isMobile ? "none" : "1px solid #E5E7EB",
-                boxShadow: isMobile ? "none" : "0 10px 25px -5px rgba(0, 0, 0, 0.05)",
+                width: "100%",
+                maxWidth: 400,
+                padding: isMobile ? "32px 20px" : "40px 32px",
+                border: "1px solid #E5E7EB",
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.05)",
                 background: "#ffffff",
-                borderRadius: isMobile ? 0 : 24,
+                borderRadius: 24,
                 boxSizing: "border-box",
             }}>
-                {/* DESKTOP HEADER */}
-                {!isMobile && (
-                    <div style={styles.header}>
-                        <div style={styles.iconCircle}>
-                            <MdLock size={28} color="#B34E33" />
-                        </div>
-                        <h1 style={styles.title}>Ganti Password</h1>
+                {/* HEADER (ALWAYS SHOW EMBLEM IN ALL BREAKPOINTS) */}
+                <div style={styles.header}>
+                    <div style={styles.iconCircle}>
+                        <MdLock size={28} color="#B34E33" />
                     </div>
-                )}
-
-                {/* MOBILE SUB-HEADER DESCRIPTION */}
-                {isMobile && (
-                    <div style={styles.mobileHeaderDesc}>
-                        Gunakan password yang kuat dan aman untuk melindungi akun pemantauan Anda.
-                    </div>
-                )}
+                    <h1 style={styles.title}>Ganti Password</h1>
+                </div>
 
                 <form onSubmit={submit}>
                     <div style={styles.formGroup}>
@@ -157,25 +134,25 @@ export default function ChangePasswordPage() {
 
                     <div style={{
                         ...styles.actionWrapper,
-                        flexDirection: isMobile ? "column-reverse" : "row",
-                        gap: isMobile ? 8 : 12,
-                        marginTop: isMobile ? 28 : 32,
+                        flexDirection: "row",
+                        gap: 12,
+                        marginTop: 32,
                     }}>
-                        {!isMobile && (
-                            <button
-                                type="button"
-                                onClick={() => nav("/menu")}
-                                style={styles.btnSecondary}
-                                disabled={loading}
-                            >
-                                Kembali
-                            </button>
-                        )}
+                        <button
+                            type="button"
+                            onClick={() => nav("/menu")}
+                            style={{
+                                ...styles.btnSecondary,
+                                height: isMobile ? "44px" : "48px",
+                            }}
+                            disabled={loading}
+                        >
+                            Kembali
+                        </button>
                         <button
                             type="submit"
                             style={{
                                 ...styles.btnPrimary,
-                                width: "100%",
                                 height: isMobile ? "44px" : "48px",
                             }}
                             disabled={loading}
@@ -188,8 +165,8 @@ export default function ChangePasswordPage() {
 
             <div style={{
                 ...styles.footerInfo,
-                marginTop: isMobile ? 32 : 24,
-                textAlign: isMobile ? "center" : "left",
+                marginTop: 24,
+                textAlign: "center",
             }}>
                 Logged in as: <b>{user?.user_nama}</b>
             </div>
