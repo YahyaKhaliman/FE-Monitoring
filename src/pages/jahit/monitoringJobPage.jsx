@@ -603,26 +603,11 @@ export default function MonitoringJobPage() {
                                     </div>
 
                                     <div
-                                        style={
-                                            styles.mobileJamGroupStatsSummary
-                                        }
-                                    >
-                                        <span>
-                                            Target Jam:{" "}
-                                            <strong>{g.totalTarget}</strong>
-                                        </span>
-                                        <span>
-                                            Realisasi Jam:{" "}
-                                            <strong>{g.totalRealisasi}</strong>
-                                        </span>
-                                    </div>
-
-                                    <div
                                         style={{
                                             display: "flex",
                                             flexDirection: "column",
-                                            gap: 12,
-                                            marginTop: 8,
+                                            gap: 8,
+                                            marginTop: 4,
                                         }}
                                     >
                                         {g.items.map((r, i) => (
