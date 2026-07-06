@@ -1,5 +1,5 @@
 import React from "react";
-import { AiFillCaretLeft, AiFillCaretRight  } from "react-icons/ai"
+import { AiFillCaretLeft, AiFillCaretRight, AiOutlineCalendar } from "react-icons/ai";
 
 export default function SimpleDatePicker({ value, onChange, minDate, maxDate }) {
     const addDays = (dateStr, days) => {
@@ -42,26 +42,72 @@ export default function SimpleDatePicker({ value, onChange, minDate, maxDate }) 
             >
                 <AiFillCaretLeft />
             </button>
-            <input
-                type="date"
-                value={value || ""}
-                onChange={e => onChange(e.target.value)}
-                min={minDate}
-                max={maxDate}
+            
+            {/* Container Input dengan Custom Calendar Icon */}
+            <div
                 style={{
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    width: 150,
                     height: 42,
                     borderRadius: 8,
                     border: "1px solid #D1D5DB",
-                    padding: "0 12px",
-                    fontSize: 14,
-                    fontFamily: "inherit",
-                    outline: "none",
                     background: "#fff",
                     cursor: "pointer",
-                    width: 140,
-                    textAlign: 'center'
+                    boxSizing: "border-box",
                 }}
-            />
+            >
+                <style>{`
+                    .custom-datepicker-input::-webkit-calendar-picker-indicator,
+                    .custom-datepicker-input::-webkit-inner-spin-button,
+                    .custom-datepicker-input::-webkit-clear-button {
+                        display: none !important;
+                        -webkit-appearance: none !important;
+                        appearance: none !important;
+                    }
+                `}</style>
+                <input
+                    type="date"
+                    value={value || ""}
+                    onChange={e => onChange(e.target.value)}
+                    onClick={(e) => {
+                        try {
+                            e.target.showPicker();
+                        } catch (err) {
+                            console.warn("showPicker not supported", err);
+                        }
+                    }}
+                    min={minDate}
+                    max={maxDate}
+                    className="custom-datepicker-input"
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        border: "none",
+                        outline: "none",
+                        background: "transparent",
+                        padding: "0 28px 0 12px",
+                        fontSize: 13,
+                        fontFamily: "inherit",
+                        cursor: "pointer",
+                        textAlign: 'left',
+                        WebkitAppearance: "none",
+                        appearance: "none",
+                        boxSizing: "border-box",
+                    }}
+                />
+                <AiOutlineCalendar 
+                    size={16}
+                    style={{
+                        position: "absolute",
+                        right: 8,
+                        color: "#6B7280",
+                        pointerEvents: "none",
+                    }}
+                />
+            </div>
+
             <button
                 type="button"
                 onClick={() => value && canNext() && onChange(addDays(value, 1))}
