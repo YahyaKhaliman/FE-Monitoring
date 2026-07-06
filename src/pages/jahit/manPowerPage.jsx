@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import { MdEdit, MdDelete, MdArrowBack, MdRefresh } from "react-icons/md";
 import { SkeletonTable } from "../../components/Skeleton";
 import { formatDate } from "../../utils/date";
+import SimpleDatePicker from "../../components/SimpleDatePicker";
 
 export default function ManPowerPage() {
     const navigate = useNavigate();
@@ -343,11 +344,9 @@ export default function ManPowerPage() {
             }}>
                 <div style={{ flex: 1, width: "100%" }}>
                     <label style={styles.label}>Tanggal Produksi</label>
-                    <input
-                        type="date"
-                        style={{ ...styles.inputFilter, width: "100%" }}
+                    <SimpleDatePicker
                         value={tanggal}
-                        onChange={(e) => setTanggal(e.target.value)}
+                        onChange={(val) => setTanggal(val)}
                     />
                 </div>
                 <div style={{ flex: 1, width: "100%" }}>

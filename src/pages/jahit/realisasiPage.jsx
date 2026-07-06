@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { MdSearch, MdArrowBack, MdRefresh } from "react-icons/md";
 import { SkeletonTable } from "../../components/Skeleton";
+import SimpleDatePicker from "../../components/SimpleDatePicker";
 
 export default function RealisasiJobPage() {
     const navigate = useNavigate();
@@ -435,7 +436,7 @@ export default function RealisasiJobPage() {
         <div
             style={{
                 ...styles.page,
-                padding: isMobile ? "12px" : "32px 20px",
+                padding: isMobile ? "12px" : "20px",
             }}
         >
             <style>{`
@@ -541,15 +542,9 @@ export default function RealisasiJobPage() {
             >
                 <div style={{ ...styles.filterGroup, width: "100%" }}>
                     <label style={styles.label}>Tanggal</label>
-                    <input
-                        type="date"
-                        style={{
-                            ...styles.input,
-                            width: "100%",
-                            boxSizing: "border-box",
-                        }}
+                    <SimpleDatePicker
                         value={tanggal}
-                        onChange={(e) => setTanggal(e.target.value)}
+                        onChange={(val) => setTanggal(val)}
                     />
                 </div>
 
@@ -1379,10 +1374,8 @@ const styles = {
     page: {
         minHeight: "100vh",
         background: "#F9FAFB",
-        padding: "32px 20px",
+        padding: "20px",
         fontFamily: "'Readex Pro', sans-serif",
-        maxWidth: "1200px",
-        margin: "0 auto",
     },
     header: {
         display: "flex",

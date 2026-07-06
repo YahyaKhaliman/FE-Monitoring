@@ -12,6 +12,7 @@ import { useAuth } from "../../context/authProvider";
 import { MdArrowBack, MdRefresh } from "react-icons/md";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import SimpleDatePicker from "../../components/SimpleDatePicker";
 
 export default function MonitoringJobPage() {
     const navigate = useNavigate();
@@ -254,7 +255,7 @@ export default function MonitoringJobPage() {
     function renderSpkDetail(r, isMobileView = false) {
         const spkNos = String(r.spk || "")
             .split(",")
-            .map((x) => x.trim().toUpperCase())
+            .map((x) => x.trim())
             .filter(Boolean);
 
         if (spkNos.length === 0) {
@@ -265,11 +266,28 @@ export default function MonitoringJobPage() {
             );
         }
 
+        // Parsing nomor dan nama SPK
+        const parsedSpks = spkNos.map((item) => {
+            let no = item;
+            let name = "-";
+
+            if (no.includes("\n")) {
+                const parts = no.split(/\r?\n/);
+                no = parts[0].trim().toUpperCase();
+                name = parts[1]?.trim() || "-";
+            } else {
+                no = no.toUpperCase();
+                const spkInfo = spkMap[no];
+                name = spkInfo?.nama || "-";
+            }
+
+            return { no, name };
+        });
+
         // JIKA HANYA ADA 1 SPK
-        if (spkNos.length === 1) {
-            const no = spkNos[0];
+        if (parsedSpks.length === 1) {
+            const { no, name } = parsedSpks[0];
             const spkInfo = spkMap[no];
-            const name = spkInfo?.nama || "-";
             return (
                 <div>
                     <div
@@ -296,7 +314,7 @@ export default function MonitoringJobPage() {
                             marginTop: "3px",
                         }}
                     >
-                        <span>Target: {r.target}</span>
+                        <span>Target: {spkInfo?.target || r.target}</span>
                     </div>
                 </div>
             );
@@ -311,9 +329,8 @@ export default function MonitoringJobPage() {
                     gap: isMobileView ? "10px" : "8px",
                 }}
             >
-                {spkNos.map((no, idx) => {
+                {parsedSpks.map(({ no, name }, idx) => {
                     const spkInfo = spkMap[no];
-                    const name = spkInfo?.nama || "-";
                     const targetVal = spkInfo?.target || 0;
 
                     return (
@@ -321,11 +338,11 @@ export default function MonitoringJobPage() {
                             key={idx}
                             style={{
                                 borderBottom:
-                                    idx < spkNos.length - 1
+                                    idx < parsedSpks.length - 1
                                         ? "1px dashed #E5E7EB"
                                         : "none",
                                 paddingBottom:
-                                    idx < spkNos.length - 1 ? "8px" : "0",
+                                    idx < parsedSpks.length - 1 ? "8px" : "0",
                                 marginTop: idx > 0 ? "6px" : "0",
                             }}
                         >
@@ -355,7 +372,7 @@ export default function MonitoringJobPage() {
                                     marginTop: "3px",
                                 }}
                             >
-                                Target: {targetVal}
+                                Target: {targetVal || r.target}
                             </div>
                         </div>
                     );
@@ -397,7 +414,7 @@ export default function MonitoringJobPage() {
                     </button>
                     <div>
                         <div style={styles.title}>
-                            DASHBOARD MONITORING PRODUKSI HARIAN
+                            MONITORING PRODUKSI HARIAN
                         </div>
                         <div style={styles.sub}>
                             Cabang: {userCab || "-"} •{" "}
@@ -442,15 +459,9 @@ export default function MonitoringJobPage() {
             >
                 <div style={{ ...styles.filterGroup, width: "100%" }}>
                     <label style={styles.label}>Pilih Tanggal</label>
-                    <input
-                        type="date"
-                        style={{
-                            ...styles.input,
-                            width: "100%",
-                            boxSizing: "border-box",
-                        }}
+                    <SimpleDatePicker
                         value={tanggal}
-                        onChange={(e) => setTanggal(e.target.value)}
+                        onChange={(val) => setTanggal(val)}
                     />
                 </div>
                 <div style={{ ...styles.filterGroup, width: "100%" }}>
