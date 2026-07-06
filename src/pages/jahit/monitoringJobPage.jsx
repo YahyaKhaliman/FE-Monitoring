@@ -499,7 +499,7 @@ export default function MonitoringJobPage() {
                         onChange={(e) => setKelompok(e.target.value)}
                         disabled={!isAdmin}
                     >
-                        <option value="ALL">ALL</option>
+                        <option value="ALL">Semua Kelompok</option>
                         {kelompokOptions.length === 0 && (
                             <option value="">Tidak ada kelompok</option>
                         )}
