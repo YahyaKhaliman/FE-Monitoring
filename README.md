@@ -60,7 +60,7 @@ fe-monitoring/
 ## 3. Fitur Utama Aplikasi
 
 1. **Otentikasi & Manajemen Sesi:**
-   - Login berdasarkan kode user dan sandi dengan pembagian hak akses (Admin/IT vs User Lini Produksi).
+   - Login berdasarkan username dan password dengan pembagian hak akses (Admin/IT vs User Lini Produksi).
    - Otomatis melakukan logout dan mengarahkan ke halaman login jika token JWT kadaluarsa (sistem deteksi 401 via Axios Interceptor).
 2. **Dashboard Menu Utama (`/menu`):**
    - Panel navigasi responsif berbentuk grid card untuk mengakses semua fungsi aplikasi.

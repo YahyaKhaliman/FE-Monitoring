@@ -55,7 +55,7 @@ export default function LoginPage() {
             .toUpperCase();
 
         if (!normalizedUserKode || !password) {
-            toast.warning("Kode User dan Password wajib diisi");
+            toast.warning("Username dan Password wajib diisi");
             return;
         }
 

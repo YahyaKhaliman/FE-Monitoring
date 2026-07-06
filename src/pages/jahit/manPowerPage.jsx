@@ -281,12 +281,13 @@ export default function ManPowerPage() {
                     display: "flex",
                     gap: 8,
                     width: isMobile ? "100%" : "auto",
-                    justifyContent: isMobile ? "stretch" : "flex-end"
+                    justifyContent: "flex-end"
                 }}>
                     <button
                         style={{
                             ...styles.btnSecondary,
-                            width: isMobile ? "100%" : "44px",
+                            width: "44px",
+                            flexShrink: 0,
                             height: "44px",
                             padding: 0,
                         }}

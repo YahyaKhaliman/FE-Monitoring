@@ -472,13 +472,14 @@ export default function RealisasiJobPage() {
                         display: "flex",
                         gap: 8,
                         width: isMobile ? "100%" : "auto",
-                        justifyContent: isMobile ? "stretch" : "flex-end",
+                        justifyContent: "flex-end",
                     }}
                 >
                     <button
                         style={{
                             ...styles.btnSecondary,
-                            width: isMobile ? "100%" : "44px",
+                            width: "44px",
+                            flexShrink: 0,
                             height: "44px",
                             padding: 0,
                         }}
@@ -505,7 +506,9 @@ export default function RealisasiJobPage() {
                         <MdRefresh
                             size={20}
                             style={{
-                                animation: loading ? "spin 1s linear infinite" : "none",
+                                animation: loading
+                                    ? "spin 1s linear infinite"
+                                    : "none",
                             }}
                         />
                     </button>
@@ -677,9 +680,7 @@ export default function RealisasiJobPage() {
                             ))}
                         </div>
                     ) : groupedByJam.length === 0 ? (
-                        <div style={styles.empty}>
-                            Tidak ada data realisasi di kelompok ini
-                        </div>
+                        <div style={styles.empty}>Data tidak ditemukan</div>
                     ) : (
                         <div
                             style={{
@@ -830,7 +831,7 @@ export default function RealisasiJobPage() {
                             ) : groupedByJam.length === 0 ? (
                                 <tr>
                                     <td style={styles.tdEmpty} colSpan={5}>
-                                        Tidak ada data realisasi di kelompok ini
+                                        Data tidak ditemukan
                                     </td>
                                 </tr>
                             ) : (
@@ -1770,6 +1771,12 @@ const styles = {
         fontWeight: 700,
         cursor: "pointer",
         minHeight: "36px",
+    },
+    tdEmpty: {
+        padding: "40px",
+        textAlign: "center",
+        color: "#9CA3AF",
+        fontStyle: "italic",
     },
 
     /* --- Mobile Card List Styles --- */
