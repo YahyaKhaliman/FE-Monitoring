@@ -10,7 +10,7 @@ import { getManPower } from "../../services/manPower.service";
 import { loadUser } from "../../utils/storage";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { MdSearch, MdArrowBack } from "react-icons/md";
+import { MdSearch, MdArrowBack, MdRefresh } from "react-icons/md";
 import { SkeletonTable } from "../../components/Skeleton";
 
 export default function RealisasiJobPage() {
@@ -438,6 +438,12 @@ export default function RealisasiJobPage() {
                 padding: isMobile ? "12px" : "32px 20px",
             }}
         >
+            <style>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
             {/* HEADER */}
             <div
                 style={{
@@ -472,8 +478,9 @@ export default function RealisasiJobPage() {
                     <button
                         style={{
                             ...styles.btnSecondary,
-                            flex: isMobile ? 1 : "none",
+                            width: isMobile ? "100%" : "44px",
                             height: "44px",
+                            padding: 0,
                         }}
                         onClick={() =>
                             toast.promise(refreshData(), {
@@ -483,8 +490,24 @@ export default function RealisasiJobPage() {
                             })
                         }
                         disabled={loading}
+                        title="Refresh Data"
+                        onMouseOver={(e) => {
+                            if (!loading) {
+                                e.currentTarget.style.background = "#F3F4F6";
+                                e.currentTarget.style.borderColor = "#9CA3AF";
+                            }
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.background = "#fff";
+                            e.currentTarget.style.borderColor = "#D1D5DB";
+                        }}
                     >
-                        {loading ? "..." : "Refresh"}
+                        <MdRefresh
+                            size={20}
+                            style={{
+                                animation: loading ? "spin 1s linear infinite" : "none",
+                            }}
+                        />
                     </button>
                     <button
                         style={{

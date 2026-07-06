@@ -10,6 +10,7 @@ import {
     SkeletonChart,
     SkeletonTable,
 } from "../../components/Skeleton";
+import { MdLogout, MdRefresh } from "react-icons/md";
 
 import { formatDate, toISO } from "../../utils/date";
 
@@ -296,6 +297,12 @@ export default function LaporanPage() {
 
     return (
         <div style={styles.page}>
+            <style>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
             {/* HEADER */}
             <div
                 style={{
@@ -327,23 +334,62 @@ export default function LaporanPage() {
                     <button
                         style={{
                             ...styles.btnSecondary,
-                            flex: isMobile ? 1 : "none",
+                            background: "#FEE2E2",
+                            borderColor: "#FCA5A5",
+                            color: "#B91C1C",
+                            width: isMobile ? "100%" : "46px",
                             height: isMobile ? "40px" : "46px",
+                            padding: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                         }}
                         onClick={handleLogout}
+                        title="Keluar"
+                        onMouseOver={(e) => {
+                            e.currentTarget.style.background = "#FCA5A5";
+                            e.currentTarget.style.color = "#991B1B";
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.background = "#FEE2E2";
+                            e.currentTarget.style.color = "#B91C1C";
+                        }}
                     >
-                        Keluar
+                        <MdLogout size={20} />
                     </button>
                     <button
                         style={{
                             ...styles.btnPrimary,
-                            flex: isMobile ? 1 : "none",
+                            background: "#fff",
+                            color: "#374151",
+                            border: "1px solid #D1D5DB",
+                            width: isMobile ? "100%" : "46px",
                             height: isMobile ? "40px" : "46px",
+                            padding: 0,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
                         }}
                         onClick={load}
                         disabled={loading}
+                        title="Refresh Data"
+                        onMouseOver={(e) => {
+                            if (!loading) {
+                                e.currentTarget.style.background = "#F3F4F6";
+                                e.currentTarget.style.borderColor = "#9CA3AF";
+                            }
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.background = "#fff";
+                            e.currentTarget.style.borderColor = "#D1D5DB";
+                        }}
                     >
-                        {loading ? "Memuat..." : "Refresh"}
+                        <MdRefresh
+                            size={22}
+                            style={{
+                                animation: loading ? "spin 1s linear infinite" : "none",
+                            }}
+                        />
                     </button>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authProvider";
 import { toast } from "react-toastify";
+import { MdLogout } from "react-icons/md";
 
 export default function MenuPage() {
     const navigate = useNavigate();
@@ -147,8 +148,20 @@ export default function MenuPage() {
                     <div style={styles.title}>Menu</div>
                     <div style={styles.sub}>{userLabel}</div>
                 </div>
-                <button style={styles.btnSecondary} onClick={handleLogout}>
-                    Keluar
+                <button
+                    style={styles.btnSecondary}
+                    onClick={handleLogout}
+                    title="Keluar"
+                    onMouseOver={(e) => {
+                        e.currentTarget.style.background = "#FCA5A5";
+                        e.currentTarget.style.color = "#991B1B";
+                    }}
+                    onMouseOut={(e) => {
+                        e.currentTarget.style.background = "#FEE2E2";
+                        e.currentTarget.style.color = "#B91C1C";
+                    }}
+                >
+                    <MdLogout size={20} />
                 </button>
             </div>
 
@@ -201,13 +214,15 @@ const styles = {
     sub: { marginTop: 4, fontSize: 13, color: "#6B7280", fontWeight: 500 },
 
     btnSecondary: {
+        width: 42,
         height: 42,
-        padding: "0 20px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         borderRadius: 8,
-        border: "1px solid #D1D5DB",
-        background: "#fff",
-        color: "#374151",
-        fontWeight: 700,
+        border: "1px solid #FCA5A5",
+        background: "#FEE2E2",
+        color: "#B91C1C",
         cursor: "pointer",
         transition: "all 0.2s",
     },

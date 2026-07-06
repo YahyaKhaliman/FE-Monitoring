@@ -9,7 +9,9 @@ import { getSpkTargets } from "../../services/spkTarget.service";
 import { loadUser } from "../../utils/storage";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/authProvider";
-import { MdArrowBack } from "react-icons/md";
+import { MdArrowBack, MdRefresh } from "react-icons/md";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function MonitoringJobPage() {
     const navigate = useNavigate();
@@ -101,10 +103,12 @@ export default function MonitoringJobPage() {
 
                 setRows(rowsData);
                 setAvg(persenData);
+                toast.success("Data monitoring berhasil dimuat");
             } else {
                 setRows([]);
                 setAvg(0);
                 setErrorMsg(res?.message || "Gagal memuat data monitoring");
+                toast.error(res?.message || "Gagal memuat data monitoring");
             }
         } catch (e) {
             setRows([]);
@@ -114,6 +118,7 @@ export default function MonitoringJobPage() {
                     e?.message ||
                     "Tidak bisa konek ke server monitoring",
             );
+            toast.error(e?.message || "Tidak bisa konek ke server monitoring");
             console.error("Gagal sinkronisasi monitoring", e);
         } finally {
             setLoading(false);
@@ -366,6 +371,12 @@ export default function MonitoringJobPage() {
                 padding: isMobile ? "12px" : "24px",
             }}
         >
+            <style>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
             {/* HEADER AREA */}
             <div
                 style={{
@@ -498,13 +509,31 @@ export default function MonitoringJobPage() {
                     <button
                         style={{
                             ...styles.btnRefresh,
-                            width: isMobile ? "100%" : "auto",
+                            width: isMobile ? "100%" : "40px",
                             height: "40px",
                         }}
                         onClick={loadMonitoring}
                         disabled={loading || !lini || !kelompok}
+                        title="Refresh Data"
+                        onMouseOver={(e) => {
+                            if (!loading && lini && kelompok) {
+                                e.currentTarget.style.background = "#F3F4F6";
+                                e.currentTarget.style.borderColor = "#9CA3AF";
+                            }
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.background = "#fff";
+                            e.currentTarget.style.borderColor = "#D1D5DB";
+                        }}
                     >
-                        {loading ? "Loading..." : "Refresh"}
+                        <MdRefresh
+                            size={20}
+                            style={{
+                                animation: loading
+                                    ? "spin 1s linear infinite"
+                                    : "none",
+                            }}
+                        />
                     </button>
                 </div>
             </div>
@@ -1095,16 +1124,18 @@ const styles = {
         boxShadow: "0 2px 4px rgba(0, 0, 0, 0.05)",
     },
     btnRefresh: {
-        height: 38,
-        padding: "0 16px",
+        width: 40,
+        height: 40,
         borderRadius: 8,
         border: "1px solid #D1D5DB",
         background: "#fff",
         color: "#374151",
-        fontWeight: 700,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         cursor: "pointer",
         transition: "all 0.2s ease",
-        fontFamily: "'Readex Pro', sans-serif",
+        outline: "none",
     },
     errorBox: {
         marginBottom: "14px",

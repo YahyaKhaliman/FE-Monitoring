@@ -9,7 +9,7 @@ import {
 } from "../../services/manPower.service";
 import { useAuth } from "../../context/authProvider";
 import { toast } from "react-toastify";
-import { MdEdit, MdDelete, MdArrowBack } from "react-icons/md";
+import { MdEdit, MdDelete, MdArrowBack, MdRefresh } from "react-icons/md";
 import { SkeletonTable } from "../../components/Skeleton";
 import { formatDate } from "../../utils/date";
 
@@ -250,6 +250,12 @@ export default function ManPowerPage() {
             ...styles.page,
             padding: isMobile ? "12px" : "20px",
         }}>
+            <style>{`
+                @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+            `}</style>
             {/* HEADER - Identik dengan SpkTargetPage */}
             <div style={{
                 ...styles.header,
@@ -280,8 +286,9 @@ export default function ManPowerPage() {
                     <button
                         style={{
                             ...styles.btnSecondary,
-                            flex: isMobile ? 1 : "none",
+                            width: isMobile ? "100%" : "44px",
                             height: "44px",
+                            padding: 0,
                         }}
                         onClick={() =>
                             toast.promise(refreshData(), {
@@ -291,8 +298,24 @@ export default function ManPowerPage() {
                             })
                         }
                         disabled={loading}
+                        title="Refresh Data"
+                        onMouseOver={(e) => {
+                            if (!loading) {
+                                e.currentTarget.style.background = "#F3F4F6";
+                                e.currentTarget.style.borderColor = "#9CA3AF";
+                            }
+                        }}
+                        onMouseOut={(e) => {
+                            e.currentTarget.style.background = "#fff";
+                            e.currentTarget.style.borderColor = "#D1D5DB";
+                        }}
                     >
-                        Refresh
+                        <MdRefresh
+                            size={20}
+                            style={{
+                                animation: loading ? "spin 1s linear infinite" : "none",
+                            }}
+                        />
                     </button>
                     {canInput && (
                         <button
